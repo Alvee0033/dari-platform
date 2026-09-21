@@ -29,6 +29,11 @@ let deletingDocId = null;
 // Batch selection set
 let selectedDocIds = new Set();
 
+// Track which contract numbers have already been fully generated on the server.
+// If a contract number is in this set, openContractModal() skips the loading
+// screen entirely and renders pages instantly on every subsequent open.
+const _generatedContracts = new Set();
+
 // View mode: 'table' or 'cards'
 let currentViewMode = window.innerWidth <= 768 ? 'cards' : 'table';
 
@@ -68,6 +73,17 @@ async function loadData() {
       if (Array.isArray(serverDocs)) {
         documents = serverDocs;
         localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
+
+        // Background: check which contracts are already generated server-side.
+        // Fire all checks in parallel — no await, totally non-blocking.
+        documents.forEach(doc => {
+          if (doc.documentNumber && !_generatedContracts.has(doc.documentNumber)) {
+            fetch(`/api/contracts/${doc.documentNumber}/status`, { cache: 'no-store' })
+              .then(r => r.ok ? r.json() : null)
+              .then(data => { if (data && data.ready) _generatedContracts.add(doc.documentNumber); })
+              .catch(() => {});
+          }
+        });
       }
     }
   } catch (e) {
@@ -1234,7 +1250,7 @@ function handleFormSubmit(e) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ documentNumber: docNumber, force: true })
-  }).catch(() => {});
+  }).then(r => { if (r.ok) _generatedContracts.add(docNumber); }).catch(() => {});
 
   if (window.innerWidth <= 768) {
     document.body.classList.remove('mobile-view-dashboard');
@@ -1481,6 +1497,16 @@ async function openContractModal(docId) {
   if (periodEl) periodEl.textContent = (doc.startDate && doc.endDate) ? `${doc.startDate} → ${doc.endDate}` : (doc.startDate || '-');
   if (unitEl) unitEl.textContent = doc.unitOrPlot || '-';
 
+  // FAST PATH: contract already generated — skip loader, render immediately
+  if (_generatedContracts.has(doc.documentNumber)) {
+    renderContinuousContractPages();
+    showContractLoader(false);
+    if (modal) modal.classList.add('active');
+    const container = document.getElementById('contractViewerContainer');
+    if (container) container.scrollTop = 0;
+    return;
+  }
+
   // 1. Show modal immediately with loading indicator
   showContractLoader(true, 'Initializing Official Contract Preview...', 'Connecting to document engine...');
   if (modal) modal.classList.add('active');
@@ -1512,9 +1538,12 @@ async function openContractModal(docId) {
 
     // 5. Hide loader and reveal stage
     showContractLoader(false);
+
+    // Mark as generated so every subsequent open is instant
+    _generatedContracts.add(doc.documentNumber);
   } catch (err) {
     console.warn('Contract generation notice:', err);
-    // Graceful fallback
+    // Graceful fallback — still mark ready if we have a response
     renderContinuousContractPages();
     showContractLoader(false);
   }
