@@ -247,9 +247,15 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
             '/en/app/verify-document/',
             '/ar/app/verify-document',
             '/ar/app/verify-document/',
+            '/app/verify-tenant-contract',
+            '/app/verify-tenant-contract/',
+            '/en/app/verify-tenant-contract',
+            '/en/app/verify-tenant-contract/',
+            '/ar/app/verify-tenant-contract',
+            '/ar/app/verify-tenant-contract/',
         }
 
-        if clean_path in spa_routes:
+        if clean_path in spa_routes or clean_path.startswith('/en/app') or clean_path.startswith('/ar/app') or clean_path.startswith('/app'):
             self.path = '/index.html'
             if parsed.query:
                 self.path += '?' + parsed.query

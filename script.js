@@ -6,13 +6,21 @@
 const STORAGE_KEY_DOCS = 'dari_registry_v1';
 const STORAGE_KEY_AUDIT = 'dari_audit_log_v1';
 
+// Capture direct verification query parameter from URL (e.g. from scanned QR code)
+const initialUrlParams = new URLSearchParams(window.location.search);
+const initialContractParam = initialUrlParams.get('contractNumber') || 
+                            initialUrlParams.get('contractNo') || 
+                            initialUrlParams.get('documentNumber') || 
+                            initialUrlParams.get('id') || 
+                            initialUrlParams.get('c_no');
+
 document.addEventListener('DOMContentLoaded', async () => {
   setupTabs();
   setupCaptcha();
   setupNav();
   setupPopups();
   setupResultView();
-  await checkAutoVerifyFromAdmin();
+  await checkAutoVerify();
 });
 
 let isCaptchaDone = true;
@@ -318,15 +326,21 @@ async function handleVerifySubmit(e) {
   return false;
 }
 
-// Auto-fill and execute verification if navigated from Admin Dashboard "Test in Portal"
-async function checkAutoVerifyFromAdmin() {
-  const autoNum = localStorage.getItem('dari_auto_verify_number');
+// Auto-fill and execute verification if navigated from Admin Dashboard "Test in Portal" or via direct QR code link
+async function checkAutoVerify() {
+  const autoNum = initialContractParam || localStorage.getItem('dari_auto_verify_number');
   if (!autoNum) return;
 
-  localStorage.removeItem('dari_auto_verify_number');
+  if (localStorage.getItem('dari_auto_verify_number')) {
+    localStorage.removeItem('dari_auto_verify_number');
+  }
 
+  const cleanNum = String(autoNum).trim();
   const docs = await getRegistry();
-  const matched = docs.find(d => d.documentNumber === autoNum || d.id === autoNum);
+  const matched = docs.find(d => 
+    (d.documentNumber && String(d.documentNumber).trim() === cleanNum) || 
+    (d.id && String(d.id).trim() === cleanNum)
+  );
   const docType = matched ? matched.type : 'tenancy';
 
   // Switch to corresponding tab
@@ -336,17 +350,17 @@ async function checkAutoVerifyFromAdmin() {
   // Populate input
   if (docType === 'tenancy') {
     const el = document.getElementById('tenancyNumberInput');
-    if (el) el.value = autoNum;
+    if (el) el.value = cleanNum;
   } else if (docType === 'certificate') {
     const el = document.getElementById('certNumberInput');
     const select = document.getElementById('certTypeSelect');
     const dateInput = document.getElementById('certDateInput');
-    if (el) el.value = autoNum;
+    if (el) el.value = cleanNum;
     if (select) select.selectedIndex = 1;
     if (dateInput) dateInput.value = matched?.startDate || '2025-01-15';
   } else if (docType === 'permit') {
     const el = document.getElementById('permitNumberInput');
-    if (el) el.value = autoNum;
+    if (el) el.value = cleanNum;
   }
 
   // Execute verification immediately
@@ -448,7 +462,9 @@ function setupResultView() {
   const verifyNotFoundView = document.getElementById('verifyNotFoundView');
   const docVerifyForm = document.getElementById('docVerifyForm');
 
-  ensureCleanUrl();
+  if (!initialContractParam) {
+    ensureCleanUrl();
+  }
 
   function showForm() {
     if (verifyResultView) verifyResultView.style.display = 'none';
@@ -488,6 +504,8 @@ function setupResultView() {
     });
   }
 
-  // Ensure clean url on init
-  ensureCleanUrl();
+  // Ensure clean url on init only if no query param
+  if (!initialContractParam) {
+    ensureCleanUrl();
+  }
 }

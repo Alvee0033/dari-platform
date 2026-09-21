@@ -104,27 +104,31 @@ def resolve_font_name(requested_font: str, text: str) -> str:
 
 def render_qr_code(card: Image.Image, qr_text: str):
     """
-    Renders the official top-left QR code containing the contract number.
+    Renders the official top-left QR code containing the direct verification link with contract ID.
     Exact position: x=[84, 191], y=[67, 174], size=107x107 px.
     """
     if not qr_text:
         return
+
+    text = str(qr_text).strip()
+    if text.startswith("http://") or text.startswith("https://"):
+        qr_url = text
+    else:
+        qr_url = f"https://dari-aec.com/en/app/verify-tenant-contract?contractNumber={text}"
 
     # Clean the 108x108 region first to cover any existing artifact
     draw = ImageDraw.Draw(card)
     draw.rectangle([(84, 66), (191, 174)], fill=(255, 255, 255, 255))
 
     qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=5,
-        border=0,
-        mask_pattern=7
+        box_size=4,
+        border=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M
     )
-    qr.add_data(str(qr_text).strip())
+    qr.add_data(qr_url)
     qr.make(fit=True)
     qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
-    qr_resized = qr_img.resize((107, 107), Image.Resampling.BILINEAR)
+    qr_resized = qr_img.resize((107, 107), Image.Resampling.NEAREST)
     card.paste(qr_resized, (84, 67), qr_resized)
 
 
