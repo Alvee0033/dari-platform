@@ -25,14 +25,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 let isCaptchaDone = true;
 
-// Retrieve documents from localStorage or documents.json
+// Retrieve documents from localStorage or dynamic API
 async function getRegistry() {
   let docs = [];
   const cachedDocs = localStorage.getItem(STORAGE_KEY_DOCS);
   if (cachedDocs) {
     try {
       const parsed = JSON.parse(cachedDocs);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         docs = parsed;
       }
     } catch (e) {
@@ -41,23 +41,20 @@ async function getRegistry() {
   }
 
   try {
-    const res = await fetch('documents.json');
+    const res = await fetch(`/api/documents?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     if (res.ok) {
       const serverDocs = await res.json();
-      if (!docs || docs.length === 0) {
+      if (Array.isArray(serverDocs)) {
         docs = serverDocs;
-      } else {
-        serverDocs.forEach(sd => {
-          if (!docs.some(d => d.documentNumber === sd.documentNumber || d.id === sd.id)) {
-            docs.unshift(sd);
-          }
-        });
+        localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(docs));
+        return docs;
       }
-      localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(docs));
-      return docs;
     }
   } catch (e) {
-    console.warn('Could not fetch documents.json', e);
+    console.warn('Could not fetch /api/documents', e);
   }
   return docs;
 }
@@ -71,6 +68,16 @@ async function recordAuditLog(queryRef, docType, result, status, partyName = '-'
       auditLogs = JSON.parse(cachedAudit);
     } catch (e) {}
   }
+
+  try {
+    const res = await fetch(`/api/audit?_t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) {
+      const serverAudit = await res.json();
+      if (Array.isArray(serverAudit)) {
+        auditLogs = serverAudit;
+      }
+    }
+  } catch (e) {}
 
   const isMobile = window.innerWidth <= 768 || navigator.userAgent.includes('Mobile');
   const typeMap = {

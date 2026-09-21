@@ -232,26 +232,25 @@ def destroy_session(token):
 
 def get_documents_db(json_filepath):
     conn = get_db_connection()
-    if not conn:
-        if os.path.exists(json_filepath):
+    if conn:
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT data FROM documents ORDER BY updated_at DESC;")
+            rows = cur.fetchall()
+            cur.close()
+            conn.close()
+            # If database query succeeds, return rows (even if empty, meaning all deleted!)
+            return [row[0] for row in rows]
+        except Exception as e:
+            logger.error(f"Error fetching documents from DB: {e}")
+
+    # Fallback to local file ONLY if DB connection fails/unreachable
+    if os.path.exists(json_filepath):
+        try:
             with open(json_filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
-        return []
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT data FROM documents ORDER BY updated_at DESC;")
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-        if rows:
-            return [row[0] for row in rows]
-    except Exception as e:
-        logger.error(f"Error fetching documents from DB: {e}")
-
-    # Fallback to local file if empty or error
-    if os.path.exists(json_filepath):
-        with open(json_filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        except Exception:
+            pass
     return []
 
 def save_documents_db(docs, json_filepath):
@@ -266,18 +265,30 @@ def save_documents_db(docs, json_filepath):
         return
     try:
         cur = conn.cursor()
-        for doc in docs:
-            doc_id = str(doc.get("id") or doc.get("documentNumber") or "")
-            doc_num = str(doc.get("documentNumber") or "")
-            if doc_id:
-                cur.execute("""
-                    INSERT INTO documents (id, document_number, data, updated_at)
-                    VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
-                    ON CONFLICT (id) DO UPDATE SET
-                        document_number = EXCLUDED.document_number,
-                        data = EXCLUDED.data,
-                        updated_at = CURRENT_TIMESTAMP;
-                """, (doc_id, doc_num, json.dumps(doc)))
+        if not docs or len(docs) == 0:
+            # All documents deleted!
+            cur.execute("DELETE FROM documents;")
+        else:
+            kept_ids = []
+            for doc in docs:
+                doc_id = str(doc.get("id") or doc.get("documentNumber") or "")
+                doc_num = str(doc.get("documentNumber") or "")
+                if doc_id:
+                    kept_ids.append(doc_id)
+                    cur.execute("""
+                        INSERT INTO documents (id, document_number, data, updated_at)
+                        VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+                        ON CONFLICT (id) DO UPDATE SET
+                            document_number = EXCLUDED.document_number,
+                            data = EXCLUDED.data,
+                            updated_at = CURRENT_TIMESTAMP;
+                    """, (doc_id, doc_num, json.dumps(doc)))
+            
+            # Delete any documents in DB that were removed by the admin
+            if kept_ids:
+                cur.execute("DELETE FROM documents WHERE id NOT IN %s;", (tuple(kept_ids),))
+            else:
+                cur.execute("DELETE FROM documents;")
         conn.commit()
         cur.close()
         conn.close()
@@ -286,25 +297,23 @@ def save_documents_db(docs, json_filepath):
 
 def get_audit_db(json_filepath):
     conn = get_db_connection()
-    if not conn:
-        if os.path.exists(json_filepath):
-            with open(json_filepath, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        return []
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT data FROM audit_logs ORDER BY created_at DESC LIMIT 100;")
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-        if rows:
+    if conn:
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT data FROM audit_logs ORDER BY created_at DESC LIMIT 100;")
+            rows = cur.fetchall()
+            cur.close()
+            conn.close()
             return [row[0] for row in rows]
-    except Exception as e:
-        logger.error(f"Error fetching audit log from DB: {e}")
+        except Exception as e:
+            logger.error(f"Error fetching audit log from DB: {e}")
 
     if os.path.exists(json_filepath):
-        with open(json_filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        try:
+            with open(json_filepath, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            pass
     return []
 
 def save_audit_db(logs, json_filepath):
@@ -319,15 +328,24 @@ def save_audit_db(logs, json_filepath):
         return
     try:
         cur = conn.cursor()
-        for item in logs:
-            item_id = str(item.get("id") or "")
-            if item_id:
-                cur.execute("""
-                    INSERT INTO audit_logs (id, data, created_at)
-                    VALUES (%s, %s, CURRENT_TIMESTAMP)
-                    ON CONFLICT (id) DO UPDATE SET
-                        data = EXCLUDED.data;
-                """, (item_id, json.dumps(item)))
+        if not logs or len(logs) == 0:
+            cur.execute("DELETE FROM audit_logs;")
+        else:
+            kept_ids = []
+            for item in logs:
+                item_id = str(item.get("id") or "")
+                if item_id:
+                    kept_ids.append(item_id)
+                    cur.execute("""
+                        INSERT INTO audit_logs (id, data, created_at)
+                        VALUES (%s, %s, CURRENT_TIMESTAMP)
+                        ON CONFLICT (id) DO UPDATE SET
+                            data = EXCLUDED.data;
+                    """, (item_id, json.dumps(item)))
+            if kept_ids:
+                cur.execute("DELETE FROM audit_logs WHERE id NOT IN %s;", (tuple(kept_ids),))
+            else:
+                cur.execute("DELETE FROM audit_logs;")
         conn.commit()
         cur.close()
         conn.close()

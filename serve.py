@@ -200,8 +200,12 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         clean_path = parsed.path.rstrip('/')
 
-        # 1. API Endpoints
-        if clean_path in ['/api/documents', '/api/audit', '/api/generate-contract', '/api/auth/login', '/api/auth/logout', '/api/auth/me']:
+        # 1. API Endpoints (Always handled dynamically via database)
+        if clean_path in ['/api/documents', '/documents.json'] or clean_path.endswith('/documents.json'):
+            return '/api/documents'
+        if clean_path in ['/api/audit', '/audit_log.json'] or clean_path.endswith('/audit_log.json'):
+            return '/api/audit'
+        if clean_path in ['/api/generate-contract', '/api/auth/login', '/api/auth/logout', '/api/auth/me']:
             return clean_path
         if clean_path.startswith('/api/contracts'):
             return clean_path
@@ -232,7 +236,7 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.path += '?' + parsed.query
             return None
 
-        for filename in ['style.css', 'script.js', 'admin.css', 'admin.js', 'login.html', 'bottom_nav_data.json', 'documents.json', 'audit_log.json', 'favicon.ico']:
+        for filename in ['style.css', 'script.js', 'admin.css', 'admin.js', 'login.html', 'bottom_nav_data.json', 'favicon.ico']:
             if parsed.path.endswith('/' + filename):
                 self.path = '/' + filename
                 if parsed.query:
@@ -461,12 +465,12 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(b'{"status": "success"}')
             return
 
-        if clean_path in ['/api/documents', '/api/audit']:
+        if clean_path in ['/api/documents', '/documents.json', '/api/audit', '/audit_log.json']:
             content_len = int(self.headers.get('Content-Length', 0))
             post_body = self.rfile.read(content_len)
             try:
                 data = json.loads(post_body.decode('utf-8'))
-                if clean_path == '/api/documents':
+                if clean_path in ['/api/documents', '/documents.json']:
                     db.save_documents_db(data, os.path.join(DIRECTORY, 'documents.json'))
                 else:
                     db.save_audit_db(data, os.path.join(DIRECTORY, 'audit_log.json'))
@@ -474,6 +478,7 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 self.end_headers()
                 self.wfile.write(b'{"status":"success"}')
                 return
@@ -481,6 +486,7 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(400)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 self.end_headers()
                 self.wfile.write(json.dumps({"status":"error", "message": str(e)}).encode('utf-8'))
                 return
@@ -508,6 +514,7 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Content-Length', str(len(out_bytes)))
                 self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 self.end_headers()
                 self.wfile.write(out_bytes)
                 return
@@ -515,6 +522,7 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(500)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 self.end_headers()
                 self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
                 return
@@ -528,6 +536,9 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
         self.send_header('Content-Length', str(len(content)))
         self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+        self.send_header('Pragma', 'no-cache')
+        self.send_header('Expires', '0')
         self.end_headers()
         self.wfile.write(content)
 

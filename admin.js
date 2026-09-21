@@ -59,31 +59,19 @@ async function loadData() {
   }
 
   try {
-    const res = await fetch('documents.json');
+    const res = await fetch(`/api/documents?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     if (res.ok) {
       const serverDocs = await res.json();
-      if (!documents || documents.length === 0) {
+      if (Array.isArray(serverDocs)) {
         documents = serverDocs;
-      } else {
-        // Merge or update server docs so latest real names and numbers take effect
-        serverDocs.forEach(sd => {
-          const idx = documents.findIndex(d => d.documentNumber === sd.documentNumber || d.id === sd.id);
-          if (idx === -1) {
-            documents.unshift(sd);
-          } else {
-            if (!documents[idx].tenantMobile && sd.tenantMobile) {
-              documents[idx].tenantMobile = sd.tenantMobile;
-            }
-            if (!documents[idx].partyName && sd.partyName) {
-              documents[idx].partyName = sd.partyName;
-            }
-          }
-        });
+        localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
       }
-      saveDocuments();
     }
   } catch (e) {
-    console.warn('Could not fetch documents.json seed', e);
+    console.warn('Could not fetch /api/documents', e);
   }
 
   const cachedAudit = localStorage.getItem(STORAGE_KEY_AUDIT);
@@ -95,16 +83,20 @@ async function loadData() {
     }
   }
 
-  if (!auditLogs || auditLogs.length === 0) {
-    try {
-      const res = await fetch('audit_log.json');
-      if (res.ok) {
-        auditLogs = await res.json();
-        saveAuditLogs();
+  try {
+    const res = await fetch(`/api/audit?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    if (res.ok) {
+      const serverAudit = await res.json();
+      if (Array.isArray(serverAudit)) {
+        auditLogs = serverAudit;
+        localStorage.setItem(STORAGE_KEY_AUDIT, JSON.stringify(auditLogs));
       }
-    } catch (e) {
-      console.warn('Could not fetch audit_log.json seed', e);
     }
+  } catch (e) {
+    console.warn('Could not fetch /api/audit', e);
   }
 }
 
@@ -141,22 +133,34 @@ function applySettingsToUI() {
   }
 }
 
-function saveDocuments() {
+async function saveDocuments() {
   localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
-  fetch('/api/documents', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(documents)
-  }).catch(() => {});
+  try {
+    const res = await fetch('/api/documents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(documents)
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('Failed to sync documents with server:', err);
+    return false;
+  }
 }
 
-function saveAuditLogs() {
+async function saveAuditLogs() {
   localStorage.setItem(STORAGE_KEY_AUDIT, JSON.stringify(auditLogs));
-  fetch('/api/audit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(auditLogs)
-  }).catch(() => {});
+  try {
+    const res = await fetch('/api/audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(auditLogs)
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('Failed to sync audit logs with server:', err);
+    return false;
+  }
 }
 
 // Setup standard event listeners
@@ -230,11 +234,11 @@ function setupEventListeners() {
   // Clear Audit Button
   const btnClearAudit = document.getElementById('btnClearAudit');
   if (btnClearAudit) {
-    btnClearAudit.addEventListener('click', () => {
+    btnClearAudit.addEventListener('click', async () => {
       auditLogs = [];
-      saveAuditLogs();
       renderAuditLogs();
       showToast('Audit log stream cleared', 'success');
+      await saveAuditLogs();
     });
   }
 
@@ -484,16 +488,16 @@ function closeBatchDeleteModal() {
   if (modal) modal.classList.remove('active');
 }
 
-function handleConfirmBatchDelete() {
+async function handleConfirmBatchDelete() {
   const count = selectedDocIds.size;
   documents = documents.filter(doc => !selectedDocIds.has(doc.id));
   selectedDocIds.clear();
 
-  saveDocuments();
   renderAll();
   closeBatchDeleteModal();
   updateBatchBar();
   showToast(`Successfully deleted ${count} documents from registry`, 'success');
+  await saveDocuments();
 }
 
 function batchUpdateStatus(status) {
@@ -1253,18 +1257,18 @@ function closeDeleteModal() {
   deletingDocId = null;
 }
 
-function handleConfirmDelete() {
+async function handleConfirmDelete() {
   if (!deletingDocId) return;
   const doc = documents.find(d => d.id === deletingDocId);
   const docNumber = doc ? doc.documentNumber : '';
   documents = documents.filter(d => d.id !== deletingDocId);
   selectedDocIds.delete(deletingDocId);
 
-  saveDocuments();
   renderAll();
   closeDeleteModal();
   updateBatchBar();
   showToast(`Document ${docNumber} removed from registry`, 'success');
+  await saveDocuments();
 }
 
 // Direct Test in Public Portal
