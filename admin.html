@@ -783,7 +783,18 @@
       </div>
 
       <div class="modal-body contract-modal-body" id="contractViewerContainer">
-        <div class="contract-page-stage" id="contractPageStage">
+        <!-- Official Contract Generation & Rendering Loading State -->
+        <div class="contract-stage-loader" id="contractStageLoader" style="display: none;">
+          <div class="stage-spinner"></div>
+          <h4 class="stage-loader-title" id="stageLoaderTitle">Generating Official Contract Preview...</h4>
+          <p class="stage-loader-subtitle" id="stageLoaderSubtitle">Rendering authentic municipal stamps, bilingual schedules, and high-resolution Page 1-8 bundle.</p>
+          <div class="stage-progress-bar-wrap">
+            <div class="stage-progress-bar" id="stageProgressBar"></div>
+          </div>
+          <div class="stage-loader-status" id="stageLoaderStatus">Compiling Page 1 to 8...</div>
+        </div>
+
+        <div class="contract-page-stage" id="contractPageStage" style="display: none;">
           <!-- Stacked pages rendered continuously by JS -->
         </div>
       </div>

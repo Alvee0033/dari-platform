@@ -12,174 +12,208 @@ import http.server
 import json
 import os
 import sys
+import threading
+import time
 import urllib.parse
 
-import importlib
 import db
 
 PORT = 8080
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
-def generate_contract_for_number(contract_num, custom_data=None):
+_contract_locks = {}
+_locks_mutex = threading.Lock()
+
+def get_contract_lock(contract_num):
+    with _locks_mutex:
+        c_str = str(contract_num)
+        if c_str not in _contract_locks:
+            _contract_locks[c_str] = threading.Lock()
+        return _contract_locks[c_str]
+
+def generate_contract_for_number(contract_num, custom_data=None, force=False):
     """Loads base template, merges with registry document data or custom_data, and generates contract bundle."""
-    import doc_gen.generate_contract
-    importlib.reload(doc_gen.generate_contract)
-    generate_contract_bundle = doc_gen.generate_contract.generate_contract_bundle
+    c_str = str(contract_num)
+    lock = get_contract_lock(c_str)
+    with lock:
+        doc_gen_dir = os.path.join(DIRECTORY, "doc_gen")
+        output_dir = os.path.join(doc_gen_dir, "output", c_str)
+        complete_marker = os.path.join(output_dir, ".complete")
 
-    doc_gen_dir = os.path.join(DIRECTORY, "doc_gen")
-    sample_json = os.path.join(doc_gen_dir, "sample_contract.json")
-    contract_data = {}
-    if os.path.exists(sample_json):
-        with open(sample_json, "r", encoding="utf-8") as f:
-            contract_data = json.load(f)
+        # If already fully generated and not forced, return cached metadata
+        if not force and not custom_data and os.path.exists(complete_marker):
+            all_pages_exist = all(os.path.exists(os.path.join(output_dir, f"{i}.png")) for i in range(1, 9))
+            pdf_path = os.path.join(output_dir, f"{c_str}.pdf")
+            if all_pages_exist and os.path.exists(pdf_path):
+                return {
+                    "contractNumber": c_str,
+                    "pageCount": 8,
+                    "pdfPath": pdf_path,
+                    "outputDir": output_dir,
+                    "pages": [f"/api/contracts/{c_str}/{i}.png" for i in range(1, 9)],
+                    "cached": True
+                }
 
-    # Check database / documents.json
-    docs_file = os.path.join(DIRECTORY, "documents.json")
-    matched_doc = None
-    try:
-        docs = db.get_documents_db(docs_file)
-        for d in docs:
-            if str(d.get("documentNumber")) == str(contract_num) or str(d.get("id")) == str(contract_num):
-                matched_doc = d
-                break
-    except Exception:
-        pass
+        from doc_gen.generate_contract import generate_contract_bundle
 
-    # If custom_data passed, merge
-    if custom_data and isinstance(custom_data, dict):
-        if "contract" in custom_data:
-            contract_data.setdefault("contract", {}).update(custom_data["contract"])
-        if "tenant" in custom_data:
-            contract_data.setdefault("tenant", {}).update(custom_data["tenant"])
-        if "lessor" in custom_data:
-            contract_data.setdefault("lessor", {}).update(custom_data["lessor"])
-        if "property" in custom_data:
-            contract_data.setdefault("property", {}).update(custom_data["property"])
-        if "units" in custom_data:
-            contract_data["units"] = custom_data["units"]
-        if "occupants" in custom_data:
-            contract_data["occupants"] = custom_data["occupants"]
+        sample_json = os.path.join(doc_gen_dir, "sample_contract.json")
+        contract_data = {}
+        if os.path.exists(sample_json):
+            with open(sample_json, "r", encoding="utf-8") as f:
+                contract_data = json.load(f)
 
-    if matched_doc:
-        contract = contract_data.setdefault("contract", {})
-        contract["contractNumber"] = matched_doc.get("documentNumber", str(contract_num))
-        if matched_doc.get("startDate"):
-            contract["startDate"] = matched_doc["startDate"]
-        if matched_doc.get("issueDate"):
-            contract["issueDate"] = str(matched_doc["issueDate"])
-        elif matched_doc.get("startDate"):
-            contract["issueDate"] = str(matched_doc["startDate"])
-        if matched_doc.get("approvalDateTime"):
-            contract["approvalDateTime"] = str(matched_doc["approvalDateTime"])
-        if matched_doc.get("endDate"):
-            contract["endDate"] = matched_doc["endDate"]
-        if matched_doc.get("status"):
-            contract["status"] = matched_doc["status"]
-        if matched_doc.get("annualRent"):
-            contract["annualRent"] = str(matched_doc["annualRent"])
-        if matched_doc.get("contractValue"):
-            contract["contractValue"] = str(matched_doc["contractValue"])
-        if matched_doc.get("securityDeposit"):
-            contract["securityDeposit"] = str(matched_doc["securityDeposit"])
-        if matched_doc.get("paymentMethodEn"):
-            contract["paymentMethodEn"] = str(matched_doc["paymentMethodEn"])
-        if matched_doc.get("paymentMethodAr"):
-            contract["paymentMethodAr"] = str(matched_doc["paymentMethodAr"])
-        if matched_doc.get("numberOfPayments"):
-            contract["numberOfPayments"] = str(matched_doc["numberOfPayments"])
-        if matched_doc.get("contractTermEn"):
-            contract["contractTermEn"] = str(matched_doc["contractTermEn"])
-        if matched_doc.get("contractTermAr"):
-            contract["contractTermAr"] = str(matched_doc["contractTermAr"])
-        if matched_doc.get("waterBillEn"):
-            contract["waterElectricityBillEn"] = str(matched_doc["waterBillEn"])
-        if matched_doc.get("petsAllowedEn"):
-            contract["petsAllowedEn"] = str(matched_doc["petsAllowedEn"])
+        # Check database / documents.json
+        docs_file = os.path.join(DIRECTORY, "documents.json")
+        matched_doc = None
+        try:
+            docs = db.get_documents_db(docs_file)
+            for d in docs:
+                if str(d.get("documentNumber")) == str(contract_num) or str(d.get("id")) == str(contract_num):
+                    matched_doc = d
+                    break
+        except Exception:
+            pass
 
-        # Tenant Details
-        tenant = contract_data.setdefault("tenant", {})
-        if matched_doc.get("partyName") or matched_doc.get("tenantNameEn"):
-            tenant["fullNameEn"] = matched_doc.get("tenantNameEn") or matched_doc.get("partyName")
-        if matched_doc.get("tenantNameAr"):
-            tenant["fullNameAr"] = matched_doc["tenantNameAr"]
-        if matched_doc.get("tenantEmiratesId"):
-            tenant["emiratesId"] = str(matched_doc["tenantEmiratesId"])
-        if matched_doc.get("tenantNationalityEn"):
-            tenant["nationalityEn"] = matched_doc["tenantNationalityEn"]
-        if matched_doc.get("tenantNationalityAr"):
-            tenant["nationalityAr"] = matched_doc["tenantNationalityAr"]
-        if matched_doc.get("tenantMobile"):
-            tenant["mobileNo"] = str(matched_doc["tenantMobile"])
-        if matched_doc.get("tenantEmail"):
-            tenant["email"] = matched_doc["tenantEmail"]
+        # If custom_data passed, merge
+        if custom_data and isinstance(custom_data, dict):
+            if "contract" in custom_data:
+                contract_data.setdefault("contract", {}).update(custom_data["contract"])
+            if "tenant" in custom_data:
+                contract_data.setdefault("tenant", {}).update(custom_data["tenant"])
+            if "lessor" in custom_data:
+                contract_data.setdefault("lessor", {}).update(custom_data["lessor"])
+            if "property" in custom_data:
+                contract_data.setdefault("property", {}).update(custom_data["property"])
+            if "units" in custom_data:
+                contract_data["units"] = custom_data["units"]
+            if "occupants" in custom_data:
+                contract_data["occupants"] = custom_data["occupants"]
 
-        # Lessor Details
-        lessor = contract_data.setdefault("lessor", {})
-        if matched_doc.get("lessorCompanyEn"):
-            lessor["companyNameEn"] = matched_doc["lessorCompanyEn"]
-        if matched_doc.get("lessorCompanyAr"):
-            lessor["companyNameAr"] = matched_doc["lessorCompanyAr"]
-        if matched_doc.get("lessorLicenseNo"):
-            lessor["licenseNo"] = str(matched_doc["lessorLicenseNo"])
-        if matched_doc.get("lessorMobile"):
-            lessor["mobileNo"] = str(matched_doc["lessorMobile"])
-        if matched_doc.get("lessorEmail"):
-            lessor["email"] = matched_doc["lessorEmail"]
+        if matched_doc:
+            contract = contract_data.setdefault("contract", {})
+            contract["contractNumber"] = matched_doc.get("documentNumber", str(contract_num))
+            if matched_doc.get("startDate"):
+                contract["startDate"] = matched_doc["startDate"]
+            if matched_doc.get("issueDate"):
+                contract["issueDate"] = str(matched_doc["issueDate"])
+            elif matched_doc.get("startDate"):
+                contract["issueDate"] = str(matched_doc["startDate"])
+            if matched_doc.get("approvalDateTime"):
+                contract["approvalDateTime"] = str(matched_doc["approvalDateTime"])
+            if matched_doc.get("endDate"):
+                contract["endDate"] = matched_doc["endDate"]
+            if matched_doc.get("status"):
+                contract["status"] = matched_doc["status"]
+            if matched_doc.get("annualRent"):
+                contract["annualRent"] = str(matched_doc["annualRent"])
+            if matched_doc.get("contractValue"):
+                contract["contractValue"] = str(matched_doc["contractValue"])
+            if matched_doc.get("securityDeposit"):
+                contract["securityDeposit"] = str(matched_doc["securityDeposit"])
+            if matched_doc.get("paymentMethodEn"):
+                contract["paymentMethodEn"] = str(matched_doc["paymentMethodEn"])
+            if matched_doc.get("paymentMethodAr"):
+                contract["paymentMethodAr"] = str(matched_doc["paymentMethodAr"])
+            if matched_doc.get("numberOfPayments"):
+                contract["numberOfPayments"] = str(matched_doc["numberOfPayments"])
+            if matched_doc.get("contractTermEn"):
+                contract["contractTermEn"] = str(matched_doc["contractTermEn"])
+            if matched_doc.get("contractTermAr"):
+                contract["contractTermAr"] = str(matched_doc["contractTermAr"])
+            if matched_doc.get("waterBillEn"):
+                contract["waterElectricityBillEn"] = str(matched_doc["waterBillEn"])
+            if matched_doc.get("petsAllowedEn"):
+                contract["petsAllowedEn"] = str(matched_doc["petsAllowedEn"])
 
-        contact = lessor.setdefault("contactPerson", {})
-        if matched_doc.get("lessorContactEn"):
-            contact["fullNameEn"] = matched_doc["lessorContactEn"]
-        if matched_doc.get("lessorContactAr"):
-            contact["fullNameAr"] = matched_doc["lessorContactAr"]
-        if matched_doc.get("contactMobile") or matched_doc.get("lessorContactMobile") or matched_doc.get("lessorMobile"):
-            contact["mobileNo"] = str(matched_doc.get("contactMobile") or matched_doc.get("lessorContactMobile") or matched_doc.get("lessorMobile"))
-        if matched_doc.get("contactEmail") or matched_doc.get("lessorContactEmail") or matched_doc.get("lessorEmail"):
-            contact["email"] = matched_doc.get("contactEmail") or matched_doc.get("lessorContactEmail") or matched_doc.get("lessorEmail")
+            # Tenant Details
+            tenant = contract_data.setdefault("tenant", {})
+            if matched_doc.get("partyName") or matched_doc.get("tenantNameEn"):
+                tenant["fullNameEn"] = matched_doc.get("tenantNameEn") or matched_doc.get("partyName")
+            if matched_doc.get("tenantNameAr"):
+                tenant["fullNameAr"] = matched_doc["tenantNameAr"]
+            if matched_doc.get("tenantEmiratesId"):
+                tenant["emiratesId"] = str(matched_doc["tenantEmiratesId"])
+            if matched_doc.get("tenantNationalityEn"):
+                tenant["nationalityEn"] = matched_doc["tenantNationalityEn"]
+            if matched_doc.get("tenantNationalityAr"):
+                tenant["nationalityAr"] = matched_doc["tenantNationalityAr"]
+            if matched_doc.get("tenantMobile"):
+                tenant["mobileNo"] = str(matched_doc["tenantMobile"])
+            if matched_doc.get("tenantEmail"):
+                tenant["email"] = matched_doc["tenantEmail"]
 
-        # Units Details
-        units = contract_data.setdefault("units", [{}])
-        if units and isinstance(units, list):
-            u0 = units[0]
-            if matched_doc.get("premiseNo"):
-                u0["premiseNo"] = str(matched_doc["premiseNo"])
-            if matched_doc.get("unitOrPlot") or matched_doc.get("unitNo"):
-                u0["unitNo"] = matched_doc.get("unitNo") or matched_doc.get("unitOrPlot")
-            if matched_doc.get("unitRegNo"):
-                u0["unitRegNo"] = str(matched_doc["unitRegNo"])
-            if matched_doc.get("noOfRooms"):
-                u0["noOfRooms"] = str(matched_doc["noOfRooms"])
-            if matched_doc.get("area"):
-                u0["area"] = str(matched_doc["area"])
-            if matched_doc.get("unitUsageEn"):
-                u0["unitUsageEn"] = matched_doc["unitUsageEn"]
-            if matched_doc.get("unitUsageAr"):
-                u0["unitUsageAr"] = matched_doc["unitUsageAr"]
-            if matched_doc.get("unitTypeEn"):
-                u0["unitTypeEn"] = matched_doc["unitTypeEn"]
-            if matched_doc.get("unitTypeAr"):
-                u0["unitTypeAr"] = matched_doc["unitTypeAr"]
+            # Lessor Details
+            lessor = contract_data.setdefault("lessor", {})
+            if matched_doc.get("lessorCompanyEn"):
+                lessor["companyNameEn"] = matched_doc["lessorCompanyEn"]
+            if matched_doc.get("lessorCompanyAr"):
+                lessor["companyNameAr"] = matched_doc["lessorCompanyAr"]
+            if matched_doc.get("lessorLicenseNo"):
+                lessor["licenseNo"] = str(matched_doc["lessorLicenseNo"])
+            if matched_doc.get("lessorMobile"):
+                lessor["mobileNo"] = str(matched_doc["lessorMobile"])
+            if matched_doc.get("lessorEmail"):
+                lessor["email"] = matched_doc["lessorEmail"]
 
-        # Property Details
-        prop = contract_data.setdefault("property", {})
-        if matched_doc.get("propertyNameEn"):
-            prop["propertyNameEn"] = matched_doc["propertyNameEn"]
-        if matched_doc.get("plotNo"):
-            prop["plotNo"] = matched_doc["plotNo"]
-        if matched_doc.get("sectorEn"):
-            prop["sectorEn"] = matched_doc["sectorEn"]
+            contact = lessor.setdefault("contactPerson", {})
+            if matched_doc.get("lessorContactEn"):
+                contact["fullNameEn"] = matched_doc["lessorContactEn"]
+            if matched_doc.get("lessorContactAr"):
+                contact["fullNameAr"] = matched_doc["lessorContactAr"]
+            if matched_doc.get("contactMobile") or matched_doc.get("lessorContactMobile") or matched_doc.get("lessorMobile"):
+                contact["mobileNo"] = str(matched_doc.get("contactMobile") or matched_doc.get("lessorContactMobile") or matched_doc.get("lessorMobile"))
+            if matched_doc.get("contactEmail") or matched_doc.get("lessorContactEmail") or matched_doc.get("lessorEmail"):
+                contact["email"] = matched_doc.get("contactEmail") or matched_doc.get("lessorContactEmail") or matched_doc.get("lessorEmail")
 
-        # Occupants Details
-        occupants = contract_data.setdefault("occupants", [{}])
-        if occupants and isinstance(occupants, list):
-            occ0 = occupants[0]
-            occ0["fullName"] = matched_doc.get("occupantName") or tenant.get("fullNameEn", "")
-            occ0["emiratesId"] = str(matched_doc.get("occupantEmiratesId") or tenant.get("emiratesId", ""))
-            occ0["fullNameAr"] = matched_doc.get("occupantNameAr") or matched_doc.get("tenantNameAr", "")
-    else:
-        contract_data.setdefault("contract", {})["contractNumber"] = str(contract_num)
+            # Units Details
+            units = contract_data.setdefault("units", [{}])
+            if units and isinstance(units, list):
+                u0 = units[0]
+                if matched_doc.get("premiseNo"):
+                    u0["premiseNo"] = str(matched_doc["premiseNo"])
+                if matched_doc.get("unitOrPlot") or matched_doc.get("unitNo"):
+                    u0["unitNo"] = matched_doc.get("unitNo") or matched_doc.get("unitOrPlot")
+                if matched_doc.get("unitRegNo"):
+                    u0["unitRegNo"] = str(matched_doc["unitRegNo"])
+                if matched_doc.get("noOfRooms"):
+                    u0["noOfRooms"] = str(matched_doc["noOfRooms"])
+                if matched_doc.get("area"):
+                    u0["area"] = str(matched_doc["area"])
+                if matched_doc.get("unitUsageEn"):
+                    u0["unitUsageEn"] = matched_doc["unitUsageEn"]
+                if matched_doc.get("unitUsageAr"):
+                    u0["unitUsageAr"] = matched_doc["unitUsageAr"]
+                if matched_doc.get("unitTypeEn"):
+                    u0["unitTypeEn"] = matched_doc["unitTypeEn"]
+                if matched_doc.get("unitTypeAr"):
+                    u0["unitTypeAr"] = matched_doc["unitTypeAr"]
 
-    output_dir = os.path.join(doc_gen_dir, "output", str(contract_num))
-    return generate_contract_bundle(contract_data, output_dir=output_dir)
+            # Property Details
+            prop = contract_data.setdefault("property", {})
+            if matched_doc.get("propertyNameEn"):
+                prop["propertyNameEn"] = matched_doc["propertyNameEn"]
+            if matched_doc.get("plotNo"):
+                prop["plotNo"] = matched_doc["plotNo"]
+            if matched_doc.get("sectorEn"):
+                prop["sectorEn"] = matched_doc["sectorEn"]
+
+            # Occupants Details
+            occupants = contract_data.setdefault("occupants", [{}])
+            if occupants and isinstance(occupants, list):
+                occ0 = occupants[0]
+                occ0["fullName"] = matched_doc.get("occupantName") or tenant.get("fullNameEn", "")
+                occ0["emiratesId"] = str(matched_doc.get("occupantEmiratesId") or tenant.get("emiratesId", ""))
+                occ0["fullNameAr"] = matched_doc.get("occupantNameAr") or matched_doc.get("tenantNameAr", "")
+        else:
+            contract_data.setdefault("contract", {})["contractNumber"] = str(contract_num)
+
+        res = generate_contract_bundle(contract_data, output_dir=output_dir)
+        try:
+            with open(complete_marker, "w", encoding="utf-8") as f:
+                f.write(str(time.time()))
+        except Exception:
+            pass
+        return res
 
 class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -337,6 +371,30 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(b'{"status":"error","message":"Missing contract reference"}')
             return
 
+        # Check for status query: /api/contracts/202401452705/status
+        if sub.endswith('/status'):
+            contract_num = sub.split('/')[0]
+            output_dir = os.path.join(DIRECTORY, "doc_gen", "output", contract_num)
+            complete_marker = os.path.join(output_dir, ".complete")
+            is_ready = os.path.exists(complete_marker) and all(
+                os.path.exists(os.path.join(output_dir, f"{i}.png")) for i in range(1, 9)
+            )
+            resp = {
+                "status": "success",
+                "contractNumber": contract_num,
+                "ready": is_ready,
+                "pageCount": 8
+            }
+            out_bytes = json.dumps(resp).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(out_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.end_headers()
+            self.wfile.write(out_bytes)
+            return
+
         # Check for /api/contracts/202401452705.pdf vs /api/contracts/202401452705/1.png
         if sub.endswith('.pdf') and '/' not in sub:
             contract_num = sub[:-4]
@@ -353,52 +411,54 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 filename = f"{contract_num}.pdf"
             target_path = os.path.join(DIRECTORY, "doc_gen", "output", contract_num, filename)
 
-        if not os.path.exists(target_path):
-            try:
-                generate_contract_for_number(contract_num)
-            except Exception as e:
-                self.send_response(500)
+        lock = get_contract_lock(contract_num)
+        with lock:
+            if not os.path.exists(target_path):
+                try:
+                    generate_contract_for_number(contract_num)
+                except Exception as e:
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"status": "error", "message": f"Generation failed: {str(e)}"}).encode('utf-8'))
+                    return
+
+            if not os.path.exists(target_path):
+                self.send_response(404)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
-                self.wfile.write(json.dumps({"status": "error", "message": f"Generation failed: {str(e)}"}).encode('utf-8'))
+                self.wfile.write(json.dumps({"status": "error", "message": f"Contract file not found: {sub}"}).encode('utf-8'))
                 return
 
-        if not os.path.exists(target_path):
-            self.send_response(404)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({"status": "error", "message": f"Contract file not found: {sub}"}).encode('utf-8'))
-            return
+            if target_path.endswith('.pdf'):
+                content_type = 'application/pdf'
+                disposition = f'inline; filename="{os.path.basename(target_path)}"'
+            elif target_path.endswith('.png'):
+                content_type = 'image/png'
+                disposition = 'inline'
+            elif target_path.endswith('.json'):
+                content_type = 'application/json'
+                disposition = 'inline'
+            else:
+                content_type = 'application/octet-stream'
+                disposition = f'attachment; filename="{os.path.basename(target_path)}"'
 
-        if target_path.endswith('.pdf'):
-            content_type = 'application/pdf'
-            disposition = f'inline; filename="{os.path.basename(target_path)}"'
-        elif target_path.endswith('.png'):
-            content_type = 'image/png'
-            disposition = 'inline'
-        elif target_path.endswith('.json'):
-            content_type = 'application/json'
-            disposition = 'inline'
-        else:
-            content_type = 'application/octet-stream'
-            disposition = f'attachment; filename="{os.path.basename(target_path)}"'
-
-        try:
-            with open(target_path, 'rb') as f:
-                data = f.read()
-            self.send_response(200)
-            self.send_header('Content-Type', content_type)
-            self.send_header('Content-Disposition', disposition)
-            self.send_header('Content-Length', str(len(data)))
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
-            self.send_header('Pragma', 'no-cache')
-            self.send_header('Expires', '0')
-            self.end_headers()
-            self.wfile.write(data)
-        except Exception as e:
-            self.send_response(500)
-            self.end_headers()
+            try:
+                with open(target_path, 'rb') as f:
+                    data = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', content_type)
+                self.send_header('Content-Disposition', disposition)
+                self.send_header('Content-Length', str(len(data)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                self.send_header('Pragma', 'no-cache')
+                self.send_header('Expires', '0')
+                self.end_headers()
+                self.wfile.write(data)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
 
     def do_HEAD(self):
         api_target = self.normalize_path()
@@ -497,12 +557,14 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 body = json.loads(post_body.decode('utf-8')) if post_body else {}
                 contract_num = body.get('documentNumber') or body.get('contractNumber') or '202401452705'
-                res = generate_contract_for_number(contract_num, custom_data=body)
+                force = body.get('force', False)
+                res = generate_contract_for_number(contract_num, custom_data=body, force=force)
                 c_num = res['contractNumber']
                 p_count = res.get('pageCount', 8)
                 pages = [f"/api/contracts/{c_num}/{i}.png" for i in range(1, p_count + 1)]
                 resp = {
                     "status": "success",
+                    "ready": True,
                     "contractNumber": c_num,
                     "pdfUrl": f"/api/contracts/{c_num}/{c_num}.pdf",
                     "downloadUrl": f"/api/contracts/{c_num}.pdf",

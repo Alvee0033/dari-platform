@@ -1229,6 +1229,13 @@ function handleFormSubmit(e) {
   renderAll();
   closeDocModal();
 
+  // Pre-generate contract in the background right after saving so it's instantly viewable
+  fetch('/api/generate-contract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ documentNumber: docNumber, force: true })
+  }).catch(() => {});
+
   if (window.innerWidth <= 768) {
     document.body.classList.remove('mobile-view-dashboard');
     document.body.classList.add('mobile-view-registry');
@@ -1362,6 +1369,81 @@ function setupContractModal() {
   });
 }
 
+// ==================== CONTRACT MODAL CONTROLLER & LOADER ====================
+function showContractLoader(show, title = '', status = '') {
+  const loader = document.getElementById('contractStageLoader');
+  const titleEl = document.getElementById('stageLoaderTitle');
+  const statusEl = document.getElementById('stageLoaderStatus');
+  const stage = document.getElementById('contractPageStage');
+
+  if (loader) {
+    if (show) {
+      loader.classList.remove('hidden');
+      loader.style.display = 'flex';
+      if (title && titleEl) titleEl.textContent = title;
+      if (status && statusEl) statusEl.textContent = status;
+      if (stage) stage.style.display = 'none';
+    } else {
+      loader.classList.add('hidden');
+      setTimeout(() => {
+        if (loader.classList.contains('hidden')) {
+          loader.style.display = 'none';
+        }
+      }, 250);
+      if (stage) stage.style.display = 'flex';
+    }
+  }
+}
+
+// Preloads pages in memory to ensure complete decoding before revealing
+function preloadContractPages(docNum, totalPages = 8) {
+  const preloadCount = Math.min(4, totalPages);
+  const promises = [];
+
+  for (let p = 1; p <= preloadCount; p++) {
+    promises.push(new Promise((resolve) => {
+      const img = new Image();
+      let timer = null;
+
+      const finish = () => {
+        if (timer) clearTimeout(timer);
+        resolve(true);
+      };
+
+      img.onload = finish;
+      img.onerror = () => {
+        setTimeout(() => {
+          const retryImg = new Image();
+          retryImg.onload = finish;
+          retryImg.onerror = finish;
+          retryImg.src = `/api/contracts/${docNum}/${p}.png?_r=${Date.now()}`;
+        }, 350);
+      };
+
+      timer = setTimeout(finish, 4000); // 4s timeout fallback
+      img.src = `/api/contracts/${docNum}/${p}.png`;
+    }));
+  }
+
+  return Promise.all(promises);
+}
+
+// Self-healing retry handler on image load error
+window.handleContractPageImgError = function(imgEl, docNum, pageNum) {
+  const retryCount = parseInt(imgEl.getAttribute('data-retries') || '0', 10);
+  if (retryCount < 6) {
+    imgEl.setAttribute('data-retries', retryCount + 1);
+    imgEl.style.opacity = '0.3';
+    setTimeout(() => {
+      imgEl.src = `/api/contracts/${docNum}/${pageNum}.png?_retry=${Date.now()}_${retryCount}`;
+    }, 450 * (retryCount + 1));
+  }
+};
+
+window.handleContractPageImgLoad = function(imgEl) {
+  imgEl.style.opacity = '1';
+};
+
 async function openContractModal(docId) {
   const doc = documents.find(d => d.id === docId);
   if (!doc) return;
@@ -1380,7 +1462,10 @@ async function openContractModal(docId) {
   const stage = document.getElementById('contractPageStage');
   const zoomText = document.getElementById('zoomToggleText');
 
-  if (stage) stage.classList.remove('zoomed');
+  if (stage) {
+    stage.classList.remove('zoomed');
+    stage.style.display = 'none';
+  }
   if (zoomText) zoomText.textContent = 'Fit to View';
 
   if (docNumEl) docNumEl.textContent = doc.documentNumber;
@@ -1397,18 +1482,43 @@ async function openContractModal(docId) {
   if (periodEl) periodEl.textContent = (doc.startDate && doc.endDate) ? `${doc.startDate} → ${doc.endDate}` : (doc.startDate || '-');
   if (unitEl) unitEl.textContent = doc.unitOrPlot || '-';
 
-  renderContinuousContractPages();
+  // 1. Show modal immediately with loading indicator
+  showContractLoader(true, 'Initializing Official Contract Preview...', 'Connecting to document engine...');
   if (modal) modal.classList.add('active');
 
   const container = document.getElementById('contractViewerContainer');
   if (container) container.scrollTop = 0;
 
-  // Trigger contract generation in background if not generated
-  fetch('/api/generate-contract', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ documentNumber: doc.documentNumber })
-  }).catch(() => {});
+  try {
+    showContractLoader(true, 'Rendering Contract Pages & Official Stamps...', 'Compiling Page 1 to 8...');
+
+    // 2. Request generation on server and wait for it to complete
+    const res = await fetch('/api/generate-contract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ documentNumber: doc.documentNumber })
+    });
+
+    if (!res.ok) {
+      throw new Error(`Server returned HTTP ${res.status}`);
+    }
+
+    showContractLoader(true, 'Verifying Document Viewability...', 'Validating high-res stream...');
+
+    // 3. Preload pages in memory to ensure complete decoding
+    await preloadContractPages(doc.documentNumber, 8);
+
+    // 4. Render pages into DOM
+    renderContinuousContractPages();
+
+    // 5. Hide loader and reveal stage
+    showContractLoader(false);
+  } catch (err) {
+    console.warn('Contract generation notice:', err);
+    // Graceful fallback
+    renderContinuousContractPages();
+    showContractLoader(false);
+  }
 }
 
 function closeContractModal() {
@@ -1429,7 +1539,14 @@ function renderContinuousContractPages() {
   for (let p = 1; p <= pageCount; p++) {
     html += `
       <div class="contract-page-card" id="contractPage_${p}">
-        <img ${p === 1 ? 'id="contractViewerImage"' : ''} class="contract-page-img" src="/api/contracts/${docNum}/${p}.png" alt="Contract Page ${p}" loading="${p <= 2 ? 'eager' : 'lazy'}">
+        <span class="page-badge">Page ${p} of ${pageCount}</span>
+        <img ${p === 1 ? 'id="contractViewerImage"' : ''} 
+             class="contract-page-img" 
+             src="/api/contracts/${docNum}/${p}.png" 
+             alt="Contract Page ${p}" 
+             loading="${p <= 2 ? 'eager' : 'lazy'}"
+             onerror="handleContractPageImgError(this, '${docNum}', ${p})"
+             onload="handleContractPageImgLoad(this)">
       </div>
     `;
   }
