@@ -174,7 +174,7 @@ function setupCaptcha() {
   });
 }
 
-async function handleVerifySubmit(e) {
+async function handleVerifySubmit(e, isInstant = false) {
   if (e && e.preventDefault) e.preventDefault();
   const alertEl = document.getElementById('statusAlert');
   if (!alertEl) return false;
@@ -321,7 +321,7 @@ async function handleVerifySubmit(e) {
       recordAuditLog(value, docType, 'Verified', 'Active', matched.partyName);
       ensureCleanUrl();
     }
-  }, 950);
+  }, isInstant ? 150 : 800);
 
   return false;
 }
@@ -363,8 +363,8 @@ async function checkAutoVerify() {
     if (el) el.value = cleanNum;
   }
 
-  // Execute verification immediately
-  handleVerifySubmit({});
+  // Execute verification immediately with instant rendering
+  handleVerifySubmit({}, true);
 }
 
 function ensureCleanUrl() {
@@ -426,6 +426,13 @@ function setupPopups() {
 
   // Mobile App Interstitial
   if (mobileInterstitial) {
+    if (initialContractParam || document.documentElement.classList.contains('qr-mode')) {
+      mobileInterstitial.classList.remove('active');
+      mobileInterstitial.classList.add('dismissed');
+      mobileInterstitial.style.display = 'none';
+      return;
+    }
+
     const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
     const urlParams = new URLSearchParams(window.location.search);
     const forceInterstitial = urlParams.get('interstitial') === '1' || urlParams.get('app') === 'open';
@@ -437,6 +444,7 @@ function setupPopups() {
     } else {
       mobileInterstitial.classList.remove('active');
       mobileInterstitial.classList.add('dismissed');
+      mobileInterstitial.style.display = 'none';
     }
 
     if (btnContinueMobile) {
@@ -498,6 +506,9 @@ function setupResultView() {
 
   const closeSmartBanner = document.getElementById('closeSmartBanner');
   const smartAppBanner = document.getElementById('smartAppBanner');
+  if (initialContractParam || document.documentElement.classList.contains('qr-mode')) {
+    if (smartAppBanner) smartAppBanner.style.display = 'none';
+  }
   if (closeSmartBanner && smartAppBanner) {
     closeSmartBanner.addEventListener('click', () => {
       smartAppBanner.style.display = 'none';

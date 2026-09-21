@@ -82,6 +82,19 @@ body {
   display: none;
 }
 
+/* Suppression when accessed via QR code verification */
+html.qr-mode #mobileAppInterstitial,
+html.qr-mode #smartAppBanner,
+body.qr-mode #mobileAppInterstitial,
+body.qr-mode #smartAppBanner,
+.qr-mode .mobile-interstitial,
+.qr-mode .smart-app-banner {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* ==================== HEADER (jss63 / jss73) ==================== */
 .jss63 {
   position: sticky;

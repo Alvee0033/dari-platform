@@ -12,6 +12,49 @@ DB_USER = os.environ.get("DB_USER")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
 DB_NAME = os.environ.get("DB_NAME")
 
+_pool = None
+
+def get_pool():
+    global _pool
+    if _pool is None and (DB_HOST and DB_USER and DB_PASSWORD and DB_NAME):
+        try:
+            from psycopg2 import pool
+            _pool = pool.ThreadedConnectionPool(
+                minconn=2,
+                maxconn=20,
+                host=DB_HOST,
+                port=DB_PORT,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                dbname=DB_NAME,
+                connect_timeout=5
+            )
+            logger.info("[DB] Initialized ThreadedConnectionPool (2-20 connections)")
+        except Exception as e:
+            logger.warning(f"[DB] Could not initialize connection pool: {e}")
+            _pool = None
+    return _pool
+
+class PooledConnectionProxy:
+    """Wrapper that intercepts .close() to return the connection to the pool rather than closing it."""
+    def __init__(self, conn, pool_ref):
+        self._conn = conn
+        self._pool = pool_ref
+        self._closed = False
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
+
+    def close(self):
+        if not self._closed and self._pool and self._conn:
+            try:
+                if not self._conn.closed:
+                    self._conn.rollback()
+                self._pool.putconn(self._conn)
+            except Exception:
+                pass
+            self._closed = True
+
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.strip().encode('utf-8')).hexdigest()
 
@@ -19,8 +62,14 @@ def get_db_connection():
     if not (DB_HOST and DB_USER and DB_PASSWORD and DB_NAME):
         return None
     try:
+        pool = get_pool()
+        if pool:
+            conn = pool.getconn()
+            if conn and not conn.closed:
+                return PooledConnectionProxy(conn, pool)
+
         import psycopg2
-        conn = psycopg2.connect(
+        return psycopg2.connect(
             host=DB_HOST,
             port=DB_PORT,
             user=DB_USER,
@@ -28,7 +77,6 @@ def get_db_connection():
             dbname=DB_NAME,
             connect_timeout=5
         )
-        return conn
     except Exception as e:
         logger.warning(f"PostgreSQL connection failed: {e}")
         return None

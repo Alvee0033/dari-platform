@@ -185,6 +185,17 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
+    def end_headers(self):
+        parsed = urllib.parse.urlparse(self.path)
+        clean = parsed.path.lower()
+        # Add high-performance edge & browser caching for static assets
+        if clean.startswith('/assets/') or clean.endswith(('.css', '.js', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.woff2', '.ttf', '.woff', '.ico')):
+            if not clean.endswith(('documents.json', 'audit_log.json', 'bottom_nav_data.json')):
+                self.send_header('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400')
+        elif clean.startswith('/api/contracts/') and clean.endswith(('.png', '.pdf')):
+            self.send_header('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400')
+        super().end_headers()
+
     def normalize_path(self):
         parsed = urllib.parse.urlparse(self.path)
         clean_path = parsed.path.rstrip('/')
@@ -524,9 +535,9 @@ if __name__ == '__main__':
     db.init_db()
     port = int(sys.argv[1]) if len(sys.argv) > 1 else PORT
     server_address = ('', port)
-    http.server.HTTPServer.allow_reuse_address = True
-    httpd = http.server.HTTPServer(server_address, DariSPARequestHandler)
-    print(f"Serving DARI SPA & Admin on port {port}")
+    http.server.ThreadingHTTPServer.allow_reuse_address = True
+    httpd = http.server.ThreadingHTTPServer(server_address, DariSPARequestHandler)
+    print(f"Serving DARI SPA & Admin with ThreadingHTTPServer on port {port}")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
