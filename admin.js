@@ -1395,12 +1395,11 @@ function showContractLoader(show, title = '', status = '') {
   }
 }
 
-// Preloads pages in memory to ensure complete decoding before revealing
+// Preloads all 8 pages in memory to ensure complete decoding before revealing
 function preloadContractPages(docNum, totalPages = 8) {
-  const preloadCount = Math.min(4, totalPages);
   const promises = [];
 
-  for (let p = 1; p <= preloadCount; p++) {
+  for (let p = 1; p <= totalPages; p++) {
     promises.push(new Promise((resolve) => {
       const img = new Image();
       let timer = null;
@@ -1417,10 +1416,10 @@ function preloadContractPages(docNum, totalPages = 8) {
           retryImg.onload = finish;
           retryImg.onerror = finish;
           retryImg.src = `/api/contracts/${docNum}/${p}.png?_r=${Date.now()}`;
-        }, 350);
+        }, 300);
       };
 
-      timer = setTimeout(finish, 4000); // 4s timeout fallback
+      timer = setTimeout(finish, 5000); // safety fallback
       img.src = `/api/contracts/${docNum}/${p}.png`;
     }));
   }
@@ -1544,7 +1543,7 @@ function renderContinuousContractPages() {
              class="contract-page-img" 
              src="/api/contracts/${docNum}/${p}.png" 
              alt="Contract Page ${p}" 
-             loading="${p <= 2 ? 'eager' : 'lazy'}"
+             loading="eager"
              onerror="handleContractPageImgError(this, '${docNum}', ${p})"
              onload="handleContractPageImgLoad(this)">
       </div>
