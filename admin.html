@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ADREC Admin - Document Verification Operations Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="icon" type="image/svg+xml" href="assets/verify.svg">
+</head>
+<body>
+
+  <!-- ==================== TOP NAVBAR ==================== -->
+  <header class="admin-navbar">
+    <div class="admin-nav-container">
+      <a href="admin.html" class="admin-brand-wrap">
+        <img src="assets/adrec-logo-header.svg" alt="ADREC" class="admin-logo-img">
+        <div class="admin-brand-divider"></div>
+        <div>
+          <div class="admin-brand-title">ADREC Regulatory Registry</div>
+          <div class="admin-brand-subtitle">Verification Operations Center</div>
+        </div>
+      </a>
+
+      <div class="admin-nav-actions">
+        <a href="/en?app/verify-document" class="btn-public-portal" target="_blank" title="Open Public Verification Portal">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          <span>Public Portal</span>
+        </a>
+
+        <button type="button" class="btn-settings-nav" id="btnOpenSettings" title="Admin Settings & Password">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          <span>Settings</span>
+        </button>
+
+        <div class="admin-user-pill" id="btnUserPill" title="Click to edit profile & credentials">
+          <div class="admin-avatar" id="navAvatarInitials">AD</div>
+          <div class="admin-user-info">
+            <span class="admin-user-name" id="navUserName">Regulatory Officer</span>
+            <span class="admin-user-role" id="navUserRole">System Admin</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn-logout-nav" id="btnLogoutNav" title="Log Out from Operations Center">
+          <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="admin-main">
+
+    <!-- ==================== VIEW 1: DASHBOARD ==================== -->
+    <div class="admin-view-panel" id="panelDashboard">
+      <!-- Header Banner -->
+      <div class="admin-header-banner">
+        <div class="header-title-group">
+          <h1>Verification Operations Dashboard</h1>
+          <p>Real-time regulatory overview of Abu Dhabi tenancy contracts and public verifications</p>
+        </div>
+        <div class="header-cta-group">
+          <button type="button" class="btn-primary-action" id="btnGoToRegistry">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            <span>Go to Document Registry &rarr;</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Metric Cards Grid -->
+      <div class="admin-kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-content">
+            <span class="kpi-label">Total Documents</span>
+            <span class="kpi-value" id="kpiTotalDocs">0</span>
+            <span class="kpi-trend trend-positive">&bull; Registered in System</span>
+          </div>
+          <div class="kpi-icon-wrap sage">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-content">
+            <span class="kpi-label">Active &amp; Verified</span>
+            <span class="kpi-value" id="kpiActiveDocs">0</span>
+            <span class="kpi-trend trend-positive">&bull; Valid Public Status</span>
+          </div>
+          <div class="kpi-icon-wrap green">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-content">
+            <span class="kpi-label">Expired / Inactive</span>
+            <span class="kpi-value" id="kpiInactiveDocs">0</span>
+            <span class="kpi-trend trend-alert">&bull; Flagged / Closed</span>
+          </div>
+          <div class="kpi-icon-wrap red">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-content">
+            <span class="kpi-label">Public Inquiries</span>
+            <span class="kpi-value" id="kpiTotalInquiries">0</span>
+            <span class="kpi-trend trend-neutral">&bull; Verification Audit Count</span>
+          </div>
+          <div class="kpi-icon-wrap gold">
+            <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Regulatory Distribution & Quick Access -->
+      <div class="dash-overview-card">
+        <div class="dash-overview-header">
+          <div class="dash-overview-title">
+            <span class="pulse-indicator"></span>
+            <h3>Registered Document Breakdown</h3>
+          </div>
+          <span class="dash-status-pill">Abu Dhabi Real Estate Centre (ADREC)</span>
+        </div>
+        <div class="dash-category-stats">
+          <div class="dash-category-item" id="dashCardTenancy" role="button" tabindex="0">
+            <div class="dash-cat-icon">📋</div>
+            <div class="dash-cat-info">
+              <span class="dash-cat-num" id="dashCountTenancy">0</span>
+              <span class="dash-cat-label">Tenancy Contracts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 2: REGISTRY (ALL ADDED DOCS) ==================== -->
+    <div class="admin-view-panel" id="panelRegistry">
+      <!-- Document Registry Card Section -->
+      <section class="admin-card-section" id="sectionRegistry">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <h2>Official Document Registry</h2>
+            <p>All registered tenancy contracts verified by the public</p>
+          </div>
+
+          <div class="registry-header-cta">
+            <button type="button" class="btn-secondary-action" id="btnExportCsv" title="Export current registry">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+              <span>Export CSV</span>
+            </button>
+            <button type="button" class="btn-primary-action" id="btnAddDocument">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <span>Register Document</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Tab Pills -->
+        <div class="filter-tabs-row">
+          <button type="button" class="tab-pill active" data-type="all">All Documents</button>
+          <button type="button" class="tab-pill" data-type="tenancy">Tenancy Contracts</button>
+        </div>
+
+      <!-- Search & Filters Toolbar -->
+      <div class="section-toolbar">
+        <div class="search-box-wrap">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          <input type="text" id="searchRegistryInput" class="search-input" placeholder="Search reference number, party name, or unit...">
+        </div>
+
+        <div class="toolbar-controls">
+          <select id="statusSelectFilter" class="status-select-filter">
+            <option value="all">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Expired">Expired</option>
+            <option value="Closed">Closed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+
+          <!-- Mobile / Desktop View Mode Toggle -->
+          <div class="view-mode-toggle" id="viewModeToggle">
+            <button type="button" class="btn-view-mode active" data-mode="table" title="Table view">
+              <svg viewBox="0 0 24 24"><path d="M3 3v18h18V3H3zm8 16H5v-6h6v6zm0-8H5V5h6v6zm8 8h-6v-6h6v6zm0-8h-6V5h6v6z"/></svg>
+            </button>
+            <button type="button" class="btn-view-mode" data-mode="cards" title="Cards view">
+              <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents Data Table Container -->
+      <div class="table-responsive" id="tableResponsiveWrapper">
+        <table class="admin-data-table" id="adminDataTable">
+          <thead>
+            <tr>
+              <th class="col-checkbox">
+                <input type="checkbox" id="selectAllCheckbox" class="custom-checkbox" title="Select All Documents">
+              </th>
+              <th>Reference Number</th>
+              <th>Type</th>
+              <th>Party / Tenant Name</th>
+              <th>Contact Number</th>
+              <th>Unit / Plot</th>
+              <th>Valid Period</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="registryTableBody">
+            <!-- Dynamically injected by admin.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Document Cards Container -->
+      <div class="mobile-doc-cards-list" id="mobileDocCardsList">
+        <!-- Dynamically injected by admin.js -->
+      </div>
+    </section>
+  </div>
+
+    <!-- Verification Audit Log Card Section -->
+    <section class="admin-card-section" id="sectionAudit">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <h2>Verification Inquiry Audit Stream</h2>
+          <p>Recent searches performed by public citizens and automated verification clients</p>
+        </div>
+        <button type="button" class="btn-secondary-action" id="btnClearAudit">Clear Audit Log</button>
+      </div>
+
+      <div class="table-responsive audit-table-wrap">
+        <table class="admin-data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Document Searched</th>
+              <th>Type</th>
+              <th>Result</th>
+              <th>Party Name</th>
+              <th>IP &amp; Device</th>
+            </tr>
+          </thead>
+          <tbody id="auditTableBody">
+            <!-- Dynamically injected by admin.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== FLOATING BATCH ACTIONS BAR ==================== -->
+  <div class="batch-actions-floating-bar" id="batchActionsBar">
+    <div class="batch-bar-inner">
+      <div class="batch-bar-left">
+        <span class="batch-counter-pill" id="batchSelectedCount">0</span>
+        <span class="batch-counter-label">selected</span>
+      </div>
+      <div class="batch-bar-actions">
+        <button type="button" class="btn-batch-action danger" id="btnBatchDelete" title="Delete selected documents">
+          <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          <span>Delete</span>
+        </button>
+        <button type="button" class="btn-batch-action success" id="btnBatchActive" title="Set selected to Active">
+          <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+          <span>Mark Active</span>
+        </button>
+        <button type="button" class="btn-batch-action warning" id="btnBatchExpire" title="Set selected to Expired">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span>Mark Expired</span>
+        </button>
+        <button type="button" class="btn-batch-close" id="btnBatchDeselect" title="Deselect all">
+          &times;
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ADD / EDIT DOCUMENT MODAL (ALL TEMPLATE FIELDS) ==================== -->
+  <div class="modal-overlay" id="docModalOverlay">
+    <div class="modal-card doc-modal-card">
+      <div class="modal-header">
+        <div class="doc-modal-header-left">
+          <div class="doc-modal-header-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="var(--adrec-green-main)"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          </div>
+          <div>
+            <h3 class="modal-title" id="docModalTitle">Register Document</h3>
+            <span class="doc-modal-subtitle">Official 9-page tenancy contract &amp; regulatory record editor</span>
+          </div>
+        </div>
+        <button type="button" class="btn-modal-close" id="btnCloseDocModal">&times;</button>
+      </div>
+
+      <form id="docEditForm">
+        <div class="modal-body doc-modal-body">
+
+          <!-- 1. CONTRACT DETAILS (Page 1 & Footers) -->
+          <div class="form-section-card" id="secContract">
+            <div class="form-section-header">
+              <div class="form-section-icon">📄</div>
+              <div class="form-section-title-wrap">
+                <h4 class="form-section-title">1. Contract Details (Page 1 &amp; Footers)</h4>
+                <p class="form-section-desc">Contract reference, issue &amp; validity dates, financial values and status</p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formDocNumber">Contract Number</label>
+                <input type="text" id="formDocNumber" class="form-input" placeholder="e.g. 202401452705">
+                <span class="form-hint">Drives the Top-Left QR Code and public verification lookup</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formIssueDate">Contract Issue Date</label>
+                <input type="date" id="formIssueDate" class="form-input">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formStartDate">Contract Start Date</label>
+                <input type="date" id="formStartDate" class="form-input">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formEndDate">Contract End Date</label>
+                <input type="date" id="formEndDate" class="form-input">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formAnnualRent">Annual Rent (AED)</label>
+                <input type="text" id="formAnnualRent" class="form-input" placeholder="e.g. 45,000.00">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formContractValue">Contract Value (AED)</label>
+                <input type="text" id="formContractValue" class="form-input" placeholder="e.g. 45,000.00">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formSecurityDeposit">Security Deposit (AED)</label>
+                <input type="text" id="formSecurityDeposit" class="form-input" placeholder="e.g. 2,000.00 or —">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formStatus">Status</label>
+                <select id="formStatus" class="form-select">
+                  <option value="Active">Active</option>
+                  <option value="Expired">Expired</option>
+                  <option value="Closed">Closed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. FIRST PARTY / LESSOR DETAILS (Page 1) -->
+          <div class="form-section-card" id="secLessor">
+            <div class="form-section-header">
+              <div class="form-section-icon">🏢</div>
+              <div class="form-section-title-wrap">
+                <h4 class="form-section-title">2. First Party / Lessor Details (Page 1)</h4>
+                <p class="form-section-desc">Lessor company name, license, contact person and communications</p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formLessorCompanyEn">Lessor Company Name (English)</label>
+                <input type="text" id="formLessorCompanyEn" class="form-input" placeholder="e.g. SANAD REAL ESTATE PROPERTIES L.L.C.">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formLessorCompanyAr">Lessor Company Name (Arabic)</label>
+                <input type="text" id="formLessorCompanyAr" class="form-input" dir="rtl" placeholder="e.g. شركة سند للعقارات ذ.م.م">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formLessorLicenseNo">Commercial License Number</label>
+                <input type="text" id="formLessorLicenseNo" class="form-input" placeholder="e.g. CN-1048007">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formLessorMobile">Lessor Mobile Number</label>
+                <input type="text" id="formLessorMobile" class="form-input" placeholder="e.g. 971501783578">
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label" for="formLessorEmail">Lessor Email Address</label>
+              <input type="email" id="formLessorEmail" class="form-input" placeholder="e.g. rangith.mepco@gmail.com">
+            </div>
+
+            <div class="form-divider-title">Authorized Contact Person</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formLessorContactEn">Authorized Contact Person Name (English)</label>
+                <input type="text" id="formLessorContactEn" class="form-input" placeholder="e.g. SHINE PILLAI HARIDASAN PILLAI SANTHA KUMARI">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formLessorContactAr">Authorized Contact Person Name (Arabic)</label>
+                <input type="text" id="formLessorContactAr" class="form-input" dir="rtl" placeholder="e.g. شاين بيلاي هاريداسان بيلاي سانثا كوماري">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formContactMobile">Contact Person Mobile</label>
+                <input type="text" id="formContactMobile" class="form-input" placeholder="e.g. 971588973810">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formContactEmail">Contact Person Email</label>
+                <input type="email" id="formContactEmail" class="form-input" placeholder="e.g. shinepillaihs@gmail.com">
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. SECOND PARTY / TENANT DETAILS (Page 2) -->
+          <div class="form-section-card" id="secTenant">
+            <div class="form-section-header">
+              <div class="form-section-icon">👤</div>
+              <div class="form-section-title-wrap">
+                <h4 class="form-section-title">3. Second Party / Tenant Details (Page 2)</h4>
+                <p class="form-section-desc">Tenant identity, nationality and direct contact details</p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formPartyName">Tenant Full Name (English)</label>
+                <input type="text" id="formPartyName" class="form-input" placeholder="e.g. RANGITH RAMALINGAM">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formTenantNameAr">Tenant Full Name (Arabic)</label>
+                <input type="text" id="formTenantNameAr" class="form-input" dir="rtl" placeholder="e.g. رانجيث رامالينغام">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formTenantEmiratesId">Emirates ID Number</label>
+                <input type="text" id="formTenantEmiratesId" class="form-input" placeholder="e.g. 784198921595066">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formTenantMobile">Mobile Number</label>
+                <input type="text" id="formTenantMobile" class="form-input" placeholder="e.g. 971543531749">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formTenantNationalityEn">Nationality (English)</label>
+                <input type="text" id="formTenantNationalityEn" class="form-input" placeholder="e.g. India">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formTenantNationalityAr">Nationality (Arabic)</label>
+                <input type="text" id="formTenantNationalityAr" class="form-input" dir="rtl" placeholder="e.g. الهند">
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label" for="formTenantEmail">Email Address</label>
+              <input type="email" id="formTenantEmail" class="form-input" placeholder="e.g. rangith.mepco@gmail.com">
+            </div>
+          </div>
+
+          <!-- 4. UNIT DETAILS (Page 2) -->
+          <div class="form-section-card" id="secUnit">
+            <div class="form-section-header">
+              <div class="form-section-icon">🏠</div>
+              <div class="form-section-title-wrap">
+                <h4 class="form-section-title">4. Unit Details (Page 2)</h4>
+                <p class="form-section-desc">Premise number, unit usage, rooms, area, type, registration &amp; unit number</p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formPremiseNo">Premise Number</label>
+                <input type="text" id="formPremiseNo" class="form-input" placeholder="e.g. 6391801694">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formUnitPlot">Unit / Flat Number</label>
+                <input type="text" id="formUnitPlot" class="form-input" placeholder="e.g. Flat No. 606">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formUnitRegNo">Unit Registration Number</label>
+                <input type="text" id="formUnitRegNo" class="form-input" placeholder="e.g. UNT308271">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formNoOfRooms">Number of Rooms</label>
+                <input type="text" id="formNoOfRooms" class="form-input" placeholder="e.g. 2">
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label" for="formArea">Unit Area (m²)</label>
+              <input type="text" id="formArea" class="form-input" placeholder="e.g. 110">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formUnitUsageEn">Unit Usage (English)</label>
+                <input type="text" id="formUnitUsageEn" class="form-input" placeholder="e.g. RESIDENTIAL">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formUnitUsageAr">Unit Usage (Arabic)</label>
+                <input type="text" id="formUnitUsageAr" class="form-input" dir="rtl" placeholder="e.g. سكني">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formUnitTypeEn">Unit Type (English)</label>
+                <input type="text" id="formUnitTypeEn" class="form-input" placeholder="e.g. APARTMENT">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formUnitTypeAr">Unit Type (Arabic)</label>
+                <input type="text" id="formUnitTypeAr" class="form-input" dir="rtl" placeholder="e.g. شقة">
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. OCCUPANTS DETAILS (Page 2) -->
+          <div class="form-section-card" id="secOccupants">
+            <div class="form-section-header">
+              <div class="form-section-icon">👥</div>
+              <div class="form-section-title-wrap">
+                <h4 class="form-section-title">5. Occupants Details (Page 2)</h4>
+                <p class="form-section-desc">Occupant full name (EN/AR) and Emirates ID</p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="formOccupantName">Occupant Full Name (English)</label>
+                <input type="text" id="formOccupantName" class="form-input" placeholder="e.g. RANGITH RAMALINGAM">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="formOccupantNameAr">Occupant Full Name (Arabic)</label>
+                <input type="text" id="formOccupantNameAr" class="form-input" dir="rtl" placeholder="e.g. رانجيث رامالينغام">
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label" for="formOccupantEmiratesId">Occupant Emirates ID</label>
+              <input type="text" id="formOccupantEmiratesId" class="form-input" placeholder="e.g. 784198921595066">
+            </div>
+          </div>
+
+          <!-- 6. ELECTRONIC SIGNATURE APPROVAL (Page 3) -->
+          <div class="form-section-card" id="secSignature">
+            <div class="form-section-header">
+              <div class="form-section-icon">✍️</div>
+              <div class="form-section-title-wrap">
+                <h4 class="form-section-title">6. Electronic Signature Approval (Page 3)</h4>
+                <p class="form-section-desc">Encodes into the Tenant &amp; Lessor digital signature stamps on Page 3</p>
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label" for="formApprovalDateTime">Approval Date &amp; Time</label>
+              <input type="text" id="formApprovalDateTime" class="form-input" placeholder="e.g. 5/2/2024 11:40:14 AM">
+              <span class="form-hint">Used for cryptographic digital signature stamps on Page 3</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer doc-modal-footer">
+          <div class="doc-footer-actions full-width-footer">
+            <button type="button" class="btn-secondary-action" id="btnCancelDocModal">Cancel</button>
+            <button type="submit" class="btn-primary-action">Save Document</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== CONFIRM SINGLE DELETE MODAL ==================== -->
+  <div class="modal-overlay" id="deleteModalOverlay">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Delete Document</h3>
+        <button type="button" class="btn-modal-close" id="btnCloseDeleteModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13.5px; color: var(--text-main);">Are you sure you want to delete this document from the registry?</p>
+        <p id="deleteTargetLabel" style="font-size: 13px; font-weight: 700; color: var(--adrec-red); margin-top: 6px;"></p>
+        <p style="font-size: 12px; color: var(--text-dim); margin-top: 6px;">Once removed, public verification searches for this number will return <strong>Document not found</strong>.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary-action" id="btnCancelDeleteModal">Cancel</button>
+        <button type="button" class="btn-primary-action" id="btnConfirmDelete" style="background-color: var(--adrec-red);">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CONFIRM BATCH DELETE MODAL ==================== -->
+  <div class="modal-overlay" id="batchDeleteModalOverlay">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Batch Delete Documents</h3>
+        <button type="button" class="btn-modal-close" id="btnCloseBatchDeleteModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13.5px; color: var(--text-main);">
+          Are you sure you want to permanently delete <strong id="batchDeleteCountLabel" style="color: var(--adrec-red);">0</strong> selected documents from the registry?
+        </p>
+        <div class="batch-delete-preview-box" id="batchDeletePreviewBox">
+          <!-- Dynamically filled with selected tags -->
+        </div>
+        <p style="font-size: 12px; color: var(--text-dim); margin-top: 10px;">
+          This action will revoke public verification for all selected records.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary-action" id="btnCancelBatchDelete">Cancel</button>
+        <button type="button" class="btn-primary-action" id="btnConfirmBatchDelete" style="background-color: var(--adrec-red);">Delete Selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SETTINGS & CREDENTIALS MODAL ==================== -->
+  <div class="modal-overlay" id="settingsModalOverlay">
+    <div class="modal-card settings-modal-card">
+      <div class="modal-header">
+        <div class="settings-modal-header-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--adrec-green-main)"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          <h3 class="modal-title">Admin Settings &amp; Security</h3>
+        </div>
+        <button type="button" class="btn-modal-close" id="btnCloseSettingsModal">&times;</button>
+      </div>
+
+      <!-- Settings Tabs -->
+      <div class="settings-modal-tabs">
+        <button type="button" class="settings-tab-btn active" data-tab="tabProfile">Profile &amp; Email</button>
+        <button type="button" class="settings-tab-btn" data-tab="tabPassword">Change Password</button>
+        <button type="button" class="settings-tab-btn" data-tab="tabPreferences">System Preferences</button>
+      </div>
+
+      <form id="settingsForm">
+        <div class="modal-body">
+          <!-- Tab 1: Profile & Email -->
+          <div class="settings-tab-pane active" id="tabProfile">
+            <div class="form-group full-width">
+              <label class="form-label" for="settingDisplayName">Admin Officer Name *</label>
+              <input type="text" id="settingDisplayName" class="form-input" value="Regulatory Officer" required placeholder="e.g. Regulatory Officer">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label" for="settingEmail">Official Email Address *</label>
+              <input type="email" id="settingEmail" class="form-input" value="officer@adrec.gov.ae" required placeholder="e.g. officer@adrec.gov.ae">
+              <span class="form-hint">Used for verification digests, audit logs, and security notifications.</span>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label" for="settingRole">Administrative Role *</label>
+              <input type="text" id="settingRole" class="form-input" value="System Admin" required placeholder="e.g. System Admin">
+            </div>
+          </div>
+
+          <!-- Tab 2: Change Password -->
+          <div class="settings-tab-pane" id="tabPassword">
+            <div class="form-group full-width">
+              <label class="form-label" for="settingCurrentPassword">Current Password</label>
+              <div class="password-input-wrapper">
+                <input type="password" id="settingCurrentPassword" class="form-input" placeholder="Enter current password (default: admin123)">
+                <button type="button" class="btn-toggle-password" data-target="settingCurrentPassword" title="Toggle visibility">👁️</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="settingNewPassword">New Password</label>
+                <div class="password-input-wrapper">
+                  <input type="password" id="settingNewPassword" class="form-input" placeholder="Minimum 6 characters">
+                  <button type="button" class="btn-toggle-password" data-target="settingNewPassword" title="Toggle visibility">👁️</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="settingConfirmPassword">Confirm New Password</label>
+                <div class="password-input-wrapper">
+                  <input type="password" id="settingConfirmPassword" class="form-input" placeholder="Confirm new password">
+                  <button type="button" class="btn-toggle-password" data-target="settingConfirmPassword" title="Toggle visibility">👁️</button>
+                </div>
+              </div>
+            </div>
+            <div class="password-strength-wrap" id="passwordStrengthWrap">
+              <div class="password-strength-bar"><div class="password-strength-fill" id="pwdStrengthFill"></div></div>
+              <span class="password-strength-label" id="pwdStrengthLabel">Enter a new password to check strength</span>
+            </div>
+          </div>
+
+          <!-- Tab 3: System Preferences -->
+          <div class="settings-tab-pane" id="tabPreferences">
+            <div class="settings-toggle-row">
+              <div>
+                <div class="settings-toggle-title">Real-Time Audit Logging</div>
+                <div class="settings-toggle-desc">Automatically track all public document verification inquiries into the Operations Center audit stream.</div>
+              </div>
+              <label class="switch-toggle">
+                <input type="checkbox" id="settingAuditLogging" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+            <div class="settings-toggle-row">
+              <div>
+                <div class="settings-toggle-title">Public Verification Portal Active</div>
+                <div class="settings-toggle-desc">Permit citizen access to verification queries at <code>/en?app/verify-document</code>.</div>
+              </div>
+              <label class="switch-toggle">
+                <input type="checkbox" id="settingPublicPortalActive" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+            <div class="form-group full-width" style="margin-top: 14px;">
+              <label class="form-label" for="settingDefaultValidity">Default Contract Validity</label>
+              <select id="settingDefaultValidity" class="form-select">
+                <option value="1">1 Year (365 Days)</option>
+                <option value="2">2 Years (730 Days)</option>
+                <option value="3">3 Years (1,095 Days)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer settings-modal-footer">
+          <button type="button" class="btn-logout-settings" id="btnLogoutSettings">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+            <span>Log Out</span>
+          </button>
+          <div class="settings-footer-actions">
+            <button type="button" class="btn-secondary-action" id="btnCancelSettingsModal">Cancel</button>
+            <button type="submit" class="btn-primary-action">Save Settings</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== CONTRACT DOCUMENT PREVIEW MODAL ==================== -->
+  <div class="modal-overlay" id="contractModalOverlay">
+    <div class="modal-card contract-modal-card">
+      <div class="modal-header contract-modal-header">
+        <div class="contract-modal-header-left">
+          <div class="contract-modal-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="var(--adrec-green-main)">
+              <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+            </svg>
+          </div>
+          <div class="contract-modal-title-wrap">
+            <h3 class="modal-title" id="contractModalTitle">Tenancy Contract Official Preview</h3>
+            <div class="contract-modal-sub-meta">
+              <span class="contract-ref-pill" id="contractModalDocNum">202401452705</span>
+              <span class="contract-status-pill active" id="contractModalStatus">Active</span>
+              <span class="contract-format-pill">Official 9-Page Bundle (A4)</span>
+            </div>
+          </div>
+        </div>
+        <div class="contract-modal-header-actions">
+          <button type="button" class="btn-contract-zoom" id="btnContractZoomToggle" title="Toggle Zoom / Fit">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zm.5-7H9v2H7v1h2v2h1v-2h2V9h-2z"/></svg>
+            <span id="zoomToggleText">Fit to View</span>
+          </button>
+          <a id="btnContractDownloadPdf" href="#" target="_blank" download class="btn-contract-download" title="Download Official PDF">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+            </svg>
+            <span>Download PDF</span>
+          </a>
+          <button type="button" class="btn-modal-close" id="btnCloseContractModal">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal-body contract-modal-body" id="contractViewerContainer">
+        <div class="contract-page-stage" id="contractPageStage">
+          <!-- Stacked pages rendered continuously by JS -->
+        </div>
+      </div>
+
+      <div class="modal-footer contract-modal-footer">
+        <div class="contract-footer-meta">
+          <span class="meta-item"><strong>Tenant:</strong> <span id="contractFooterTenant">-</span></span>
+          <span class="meta-item"><strong>Period:</strong> <span id="contractFooterPeriod">-</span></span>
+          <span class="meta-item"><strong>Unit:</strong> <span id="contractFooterUnit">-</span></span>
+        </div>
+        <div class="contract-footer-actions">
+          <button type="button" class="btn-secondary-action" id="btnCloseContractModalFooter">Close</button>
+          <a id="btnContractFooterDownload" href="#" target="_blank" download class="btn-primary-action">
+            Download Merged PDF
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MOBILE BOTTOM NAVIGATION ==================== -->
+  <nav class="admin-mobile-bottom-nav" id="adminMobileBottomNav">
+    <button type="button" class="mobile-nav-btn active" id="btnNavDashboard">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="btnNavRegistry">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+      <span>Registry</span>
+    </button>
+    <button type="button" class="mobile-nav-btn add-btn" id="btnNavAddDoc">
+      <div class="mobile-nav-add-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      </div>
+      <span>Add</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="btnNavSettings">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      <span>Settings</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="btnNavLogout" title="Log Out">
+      <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+      <span>Logout</span>
+    </button>
+  </nav>
+
+  <!-- ==================== AUTHENTICATION GUARD / LOGIN OVERLAY ==================== -->
+  <div class="admin-login-overlay" id="adminLoginOverlay">
+    <div class="admin-login-card">
+      <div class="login-brand-header">
+        <img src="assets/adrec-logo-header.svg" alt="ADREC Logo" class="login-logo-img">
+        <span class="login-badge">Restricted Access</span>
+      </div>
+      <div class="login-title-wrap">
+        <h2>Regulatory Officer Login</h2>
+        <p>Abu Dhabi Real Estate Centre (ADREC) Verification Management Portal</p>
+      </div>
+      <form id="adminLoginForm" class="login-form">
+        <div class="form-group full-width">
+          <label class="form-label" for="loginEmail">Officer Email / Username</label>
+          <div class="login-input-wrap">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--text-muted)"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            <input type="text" id="loginEmail" class="form-input login-input" placeholder="officer@adrec.gov.ae or admin" autocomplete="username" required>
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label class="form-label" for="loginPassword">Password</label>
+          <div class="login-input-wrap">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--text-muted)"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            <input type="password" id="loginPassword" class="form-input login-input" placeholder="Enter password (default: admin123)" autocomplete="current-password" required>
+            <button type="button" class="btn-toggle-password" data-target="loginPassword" title="Show/Hide Password">👁️</button>
+          </div>
+        </div>
+        <div id="loginErrorMsg" class="login-error-msg" style="display: none;"></div>
+        <button type="submit" class="btn-login-submit" id="btnLoginSubmit">
+          <span>Sign In to Operations Center</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+        </button>
+
+
+        <div class="login-footer-hint">
+          <span>Official ADREC Operations Console &bull; Security Level: Tier 1</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div class="admin-toast" id="adminToast"></div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="admin-footer">
+    <p>&copy; 2026 Abu Dhabi Real Estate Centre (ADREC). Official Government Regulatory Registry.</p>
+  </footer>
+
+  <script src="admin.js"></script>
+</body>
+</html>

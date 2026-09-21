@@ -1,0 +1,10 @@
+# Output and cache directories
+doc_gen/output/
+screenshots/
+__pycache__/
+*.pyc
+*.pyo
+
+# OS metadata
+.DS_Store
+Thumbs.db

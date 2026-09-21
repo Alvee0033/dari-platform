@@ -1,0 +1,35 @@
+<svg width="84" height="84" viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Envelope Shadow/Glow -->
+  <filter id="badgeShadow" x="42" y="4" width="40" height="40" filterUnits="userSpaceOnUse">
+    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.15)"/>
+  </filter>
+
+  <!-- Envelope Back Flap / Body Base -->
+  <rect x="12" y="32" width="60" height="44" rx="6" fill="#8E9AA8"/>
+
+  <!-- Document / Contract Sheet Inside Envelope -->
+  <g>
+    <rect x="20" y="14" width="44" height="42" rx="4" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+    <!-- Document Text Lines -->
+    <line x1="28" y1="24" x2="46" y2="24" stroke="#8E9AA8" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="28" y1="31" x2="56" y2="31" stroke="#A8B4C2" stroke-width="2" stroke-linecap="round"/>
+    <line x1="28" y1="37" x2="52" y2="37" stroke="#A8B4C2" stroke-width="2" stroke-linecap="round"/>
+    <line x1="28" y1="43" x2="48" y2="43" stroke="#A8B4C2" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Envelope Fold Overlays (Isometric Paper Style) -->
+  <!-- Left Wing -->
+  <path d="M12 34L42 54L12 76V34Z" fill="#B1BDCA"/>
+  <!-- Right Wing -->
+  <path d="M72 34L42 54L72 76V34Z" fill="#9DAAB8"/>
+  <!-- Bottom Flap -->
+  <path d="M12 76L42 52L72 76H12Z" fill="#C5D0DC"/>
+
+  <!-- Top-Right Verification Badge -->
+  <g filter="url(#badgeShadow)">
+    <circle cx="60" cy="22" r="16" fill="#FFFFFF"/>
+    <circle cx="60" cy="22" r="13.5" fill="#0E8749"/>
+    <!-- Checkmark -->
+    <path d="M53.5 22L58 26.5L66.5 17.5" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

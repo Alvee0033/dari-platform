@@ -1,0 +1,86 @@
+{
+  "contract": {
+    "contractNumber": "202401452705",
+    "issueDate": "2024-05-02",
+    "startDate": "2024-05-01",
+    "endDate": "2025-04-30",
+    "annualRent": "63,000.00",
+    "contractValue": "63,000.00",
+    "securityDeposit": "___",
+    "contractTypeEn": "Residential",
+    "contractTypeAr": "سكني",
+    "gracePeriodEn": "___",
+    "gracePeriodAr": "___",
+    "contractTermEn": "1 Year",
+    "contractTermAr": "سنة واحدة",
+    "paymentMethodEn": "Cheque",
+    "paymentMethodAr": "شيكات",
+    "numberOfPayments": "1",
+    "numberOfOccupants": "1",
+    "waterElectricityBillEn": "TENANT",
+    "waterElectricityBillAr": "المستأجر",
+    "petsAllowedEn": "No",
+    "petsAllowedAr": "لا"
+  },
+  "lessor": {
+    "companyNameEn": "INTERNATIONAL CONSTRUCTION CONTRACTING - LLC",
+    "companyNameAr": "شركة انترناشونال للمقاولات الانشائية ذ.م.م",
+    "licenseNo": "CN-1048007",
+    "mobileNo": "-",
+    "email": "-",
+    "contactPerson": {
+      "fullNameEn": "SHINE PILLAI HARIDASAN PILLAI SANTHA KUMARI",
+      "fullNameAr": "شاين بيلاي هاريداسان بيلاي سانثا كوماري",
+      "mobileNo": "971588973810",
+      "email": "shinepillaihs@gmail.com"
+    }
+  },
+  "tenant": {
+    "fullNameEn": "RANGITH RAMALINGAM",
+    "fullNameAr": "رانجيث رامالينغام",
+    "emiratesId": "784198921595066",
+    "nationalityEn": "India",
+    "nationalityAr": "الهند",
+    "mobileNo": "971543531749",
+    "email": "rangith.mepco@gmail.com"
+  },
+  "property": {
+    "municipalityEn": "Abu Dhabi City",
+    "municipalityAr": "بلدية مدينة أبوظبي",
+    "zoneEn": "Mohamed Bin Zayed City",
+    "zoneAr": "مدينة محمد بن زايد",
+    "sectorEn": "ME9",
+    "sectorAr": "ش ح 9",
+    "roadNameEn": "~",
+    "roadNameAr": "~",
+    "plotNo": "C173",
+    "plotAddress": "006-280-000-C173",
+    "onwaniAddressEn": "Al Jibal St, Mohamed Bin Zayed City, Abu Dhabi 20609",
+    "onwaniAddressAr": "شارع الجبال، مدينة محمد بن زايد، 20609 أبوظبي",
+    "propertyNo": "PRP74754",
+    "propertyRegNo": "PRP74754",
+    "propertyNameEn": "Sanad properties",
+    "propertyNameAr": "سند العقارية",
+    "propertyTypeEn": "BUILDING",
+    "propertyTypeAr": "مبنى"
+  },
+  "units": [
+    {
+      "premiseNo": "6391801694",
+      "unitUsageEn": "RESIDENTIAL",
+      "unitUsageAr": "سكني",
+      "noOfRooms": "2",
+      "area": "110",
+      "unitTypeEn": "RESIDENTIAL APARTMENT",
+      "unitTypeAr": "شقة سكنية",
+      "unitNo": "Flat No. 606",
+      "unitRegNo": "UNT308271"
+    }
+  ],
+  "occupants": [
+    {
+      "fullName": "RANGITH RAMALINGAM",
+      "emiratesId": "784198921595066"
+    }
+  ]
+}

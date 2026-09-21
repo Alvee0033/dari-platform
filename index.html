@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DARI - Welcome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="assets/verify.svg">
+</head>
+<body>
+
+  <!-- ==================== MOBILE APP INTERSTITIAL POPUP ==================== -->
+  <div class="mobile-interstitial" id="mobileAppInterstitial">
+    <img src="assets/view-application-latest.jpg" alt="ADREC App Preview" class="interstitial-bg-img">
+    <div class="interstitial-content">
+      <h1 class="interstitial-title">ADREC APP</h1>
+      <p class="interstitial-desc">Available on iOS and Android, the app is your one-stop source for real estate solutions on the go</p>
+    </div>
+    <div class="interstitial-actions">
+      <button type="button" class="interstitial-btn-download" id="btnDownloadApp">Download mobile application</button>
+      <button type="button" class="interstitial-btn-continue" id="btnContinueMobile">Continue to mobile site</button>
+    </div>
+  </div>
+
+  <!-- ==================== ONETRUST COOKIE CONSENT BANNER ==================== -->
+  <div id="onetrust-consent-sdk" class="cookie-consent-wrapper collapsed">
+    <div id="onetrust-banner-sdk" class="cookie-banner-container">
+      <div class="cookie-banner-content">
+        <div class="cookie-text">
+          <span>Our website uses cookies to enhance your browsing experience. For more information, please review our <a href="#" class="cookie-privacy-link">Privacy Policy</a></span>
+        </div>
+        <div class="cookie-buttons">
+          <button type="button" class="cookie-btn cookie-btn-manage" id="btnManageCookies">Manage Cookie Settings</button>
+          <button type="button" class="cookie-btn cookie-btn-allow" id="btnAllowAllCookies">Allow All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== DARI OFFICIAL LOADING SPINNER OVERLAY ==================== -->
+  <div class="dari-loading-overlay" id="dariLoadingOverlay">
+    <img src="assets/new_theme_loader.gif" alt="Loading..." class="dari-loader-gif">
+  </div>
+
+  <!-- ==================== SMART APP BANNER (MOBILE) ==================== -->
+  <div class="smart-app-banner" id="smartAppBanner">
+    <div class="smart-banner-inner">
+      <div class="smart-banner-left">
+        <button type="button" class="smart-banner-close" id="closeSmartBanner" aria-label="Close">×</button>
+        <img src="assets/app-icon.png" alt="DARI App" class="smart-banner-icon">
+        <div class="smart-banner-meta">
+          <div class="smart-banner-title">Download Our App</div>
+          <div class="smart-banner-sub">Free on the App store</div>
+        </div>
+      </div>
+      <a href="https://apps.apple.com/ae/app/dari/id1607496296" target="_blank" rel="noopener" class="smart-banner-btn">View App</a>
+    </div>
+  </div>
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="MuiPaper-root MuiAppBar-root MuiAppBar-positionFixed MuiAppBar-colorPrimary jss63 mui-fixed MuiPaper-elevation4">
+    <div class="MuiContainer-root jss62">
+      <div class="jss67">
+        
+        <!-- Left: Logo & Nav Links -->
+        <div class="jss72">
+          <a class="jss69" href="/en/" title="DARI">
+            <img src="assets/adrec-logo-header.svg" alt="DARI" class="logo-img">
+          </a>
+          
+          <nav class="desktop-nav">
+            <a href="#" class="MuiButtonBase-root MuiButton-root MuiButton-text jss216 nav-link">
+              <span>Home</span>
+            </a>
+            <div class="MuiButtonBase-root MuiButton-root MuiButton-text jss216 nav-dropdown">
+              <span>Applications</span>
+              <img src="assets/angle-small-down-bold.svg" alt="arrowdown" class="jss220">
+            </div>
+            <a href="#" class="MuiButtonBase-root MuiButton-root MuiButton-text jss216 nav-link">
+              <span>Services</span>
+            </a>
+            <div class="MuiButtonBase-root MuiButton-root MuiButton-text jss216 nav-dropdown">
+              <span>Properties</span>
+              <img src="assets/angle-small-down-bold.svg" alt="arrowdown" class="jss220">
+            </div>
+            <div class="MuiButtonBase-root MuiButton-root MuiButton-text jss216 nav-dropdown">
+              <span>Directory</span>
+              <img src="assets/angle-small-down-bold.svg" alt="arrowdown" class="jss220">
+            </div>
+            <a href="#" class="MuiButtonBase-root MuiButton-root MuiButton-text jss216 nav-link">
+              <span>Market Data</span>
+            </a>
+            <div class="MuiButtonBase-root MuiButton-root MuiButton-text jss216 nav-dropdown">
+              <span>Contracts</span>
+              <img src="assets/angle-small-down-bold.svg" alt="arrowdown" class="jss220">
+            </div>
+          </nav>
+        </div>
+
+        <!-- Right: Actions & Mobile Hamburger -->
+        <div class="MuiToolbar-root jss73">
+          <button class="MuiButtonBase-root MuiButton-root MuiButton-contained jss96 btn-login" type="button" onclick="window.location.href='/admin'">
+            <span>Login</span>
+          </button>
+          <button class="MuiButtonBase-root MuiButton-root MuiButton-outlined jss78" type="button" title="Language">
+            <img src="assets/globe-black.svg" alt="language">
+          </button>
+          <button class="MuiButtonBase-root MuiButton-root MuiButton-outlined jss78" type="button" title="Help">
+            <img src="assets/help-black.svg" alt="help">
+          </button>
+          <button class="MuiButtonBase-root MuiButton-root MuiButton-outlined jss77 btn-header-verify" type="button">
+            <img src="assets/verify.svg" alt="verify document">
+            <span>Verify Document</span>
+          </button>
+          <a href="/admin" class="btn-admin-nav" title="Admin Operations Center" style="display:none; align-items:center; gap:5px; padding:6px 12px; background:#005438; color:#FFFFFF; border-radius:4px; font-size:12.5px; font-weight:600; text-decoration:none; margin-left:4px;">Admin</a>
+          
+          <button class="mobile-hamburger-btn" id="mobileMenuToggle" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="jss40" id="mainContent">
+    <div class="jss303">
+      <div class="MuiContainer-root jss283">
+        <!-- Breadcrumbs Navigation -->
+        <div class="jss353">
+          <nav class="MuiTypography-root MuiBreadcrumbs-root jss354 MuiTypography-body1 MuiTypography-colorTextSecondary" aria-label="breadcrumb">
+            <ol class="MuiBreadcrumbs-ol">
+              <li class="MuiBreadcrumbs-li">
+                <a class="jss356" href="#">Back to Home Page</a>
+              </li>
+              <li class="MuiBreadcrumbs-li">
+                <span class="jss355">&gt;</span>
+              </li>
+              <li class="MuiBreadcrumbs-li">
+                <p class="jss357"><span>Verify Document</span></p>
+              </li>
+            </ol>
+          </nav>
+        </div>
+
+        <!-- ==================== VERIFIED DOCUMENT RESULT VIEW ==================== -->
+        <div class="verify-result-container" id="verifyResultView" style="display: none;">
+          <!-- Top Status Card -->
+          <div class="result-status-card">
+            <img src="assets/successIconV2.svg" alt="Active and Verified" class="result-status-icon" id="resStatusIcon">
+            <div class="result-status-text" id="resStatusText">Tenancy contract is active and verified</div>
+          </div>
+
+          <!-- Detail Card 1: Actual usage type -->
+          <div class="result-detail-card">
+            <div class="detail-label" id="resUsageLabel">Actual usage type</div>
+            <div class="detail-value" id="resUsageValue">Residential</div>
+          </div>
+
+          <!-- Detail Card 2: Dates (Start & End) -->
+          <div class="result-detail-card result-dates-grid">
+            <div class="detail-col">
+              <div class="detail-label">Start date</div>
+              <div class="detail-value" id="resStartDateValue">2026-02-01</div>
+            </div>
+            <div class="detail-col">
+              <div class="detail-label">End date</div>
+              <div class="detail-value" id="resEndDateValue">2027-01-31</div>
+            </div>
+          </div>
+
+          <!-- Detail Card 3: Tenant -->
+          <div class="result-detail-card">
+            <div class="detail-label" id="resPartyLabel">Tenant</div>
+            <div class="detail-value" id="resPartyValue">RANJITH SOURINGAL RAMACHANDRAN</div>
+          </div>
+
+          <!-- Detail Card 4: Registered units -->
+          <div class="result-detail-card">
+            <div class="detail-label" id="resUnitLabel">Registered units</div>
+            <div class="detail-value" id="resUnitValue">UNT168956</div>
+          </div>
+
+
+          <!-- Action Button: Verify Another Document -->
+          <button type="button" class="btn-verify-another" id="btnVerifyAnother">
+            Verify Another Document
+          </button>
+        </div>
+
+        <!-- ==================== NOT FOUND RESULT VIEW ==================== -->
+        <div class="verify-result-container verify-not-found-container" id="verifyNotFoundView" style="display: none;">
+          <!-- Top Status Card (Refused / Not Found) -->
+          <div class="result-status-card result-status-card-not-found">
+            <img src="assets/refused.svg" alt="Document Not Found" class="result-status-icon" id="nfStatusIcon">
+            <div class="result-status-text header-title-refused" id="nfStatusText">Document not found</div>
+          </div>
+
+          <!-- Detail Card: Message details -->
+          <div class="result-detail-card result-not-found-msg-card">
+            <div class="detail-label">Status Details</div>
+            <div class="detail-value not-found-desc" id="nfDetailsDesc">
+              No registered document was found matching the entered reference number. Please check the contract or certificate number and try again.
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <button type="button" class="btn-verify-another" id="btnVerifyAnotherNotFound">
+            Verify Another Document
+          </button>
+        </div>
+
+        <form id="docVerifyForm" onsubmit="return handleVerifySubmit(event);">
+          <!-- Main Verification Box (820px max-width) -->
+          <div class="jss223">
+            
+            <!-- Top Form Card (jss225) -->
+            <div class="jss225">
+              <div class="card-title-text">
+                <span>Verify Document</span>
+              </div>
+              <hr class="jss224">
+
+              <!-- Document Type Radio Group -->
+              <fieldset class="MuiFormControl-root jss266">
+                <div aria-label="contractOrCertificate" class="MuiFormGroup-root jss267" role="radiogroup">
+                  
+                  <!-- Tenancy Contract Radio -->
+                  <label class="MuiFormControlLabel-root jss268 radio-item active" data-type="tenancy">
+                    <span class="MuiButtonBase-root MuiIconButton-root jss324 MuiRadio-root MuiRadio-colorSecondary Mui-checked">
+                      <span class="MuiIconButton-label">
+                        <input class="jss327" name="contractOrCertificate" type="radio" value="tenancycontract" checked>
+                        <div class="jss328 jss330">
+                          <svg class="MuiSvgIcon-root radio-circle" focusable="false" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"></path>
+                          </svg>
+                          <svg class="MuiSvgIcon-root jss329 radio-dot" focusable="false" viewBox="0 0 24 24">
+                            <path d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"></path>
+                          </svg>
+                        </div>
+                      </span>
+                    </span>
+                    <span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1">
+                      <span>Tenancy Contract</span>
+                    </span>
+                  </label>
+
+                  <!-- Certificate Radio -->
+                  <label class="MuiFormControlLabel-root jss268 radio-item" data-type="certificate">
+                    <span class="MuiButtonBase-root MuiIconButton-root jss324 MuiRadio-root MuiRadio-colorSecondary">
+                      <span class="MuiIconButton-label">
+                        <input class="jss327" name="contractOrCertificate" type="radio" value="certificate">
+                        <div class="jss328">
+                          <svg class="MuiSvgIcon-root radio-circle" focusable="false" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"></path>
+                          </svg>
+                          <svg class="MuiSvgIcon-root jss329 radio-dot" focusable="false" viewBox="0 0 24 24">
+                            <path d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"></path>
+                          </svg>
+                        </div>
+                      </span>
+                    </span>
+                    <span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1">
+                      <span>Certificate</span>
+                    </span>
+                  </label>
+
+                  <!-- Madhmoun Permit Radio -->
+                  <label class="MuiFormControlLabel-root jss268 radio-item" data-type="permit">
+                    <span class="MuiButtonBase-root MuiIconButton-root jss324 MuiRadio-root MuiRadio-colorSecondary">
+                      <span class="MuiIconButton-label">
+                        <input class="jss327" name="contractOrCertificate" type="radio" value="permit">
+                        <div class="jss328">
+                          <svg class="MuiSvgIcon-root radio-circle" focusable="false" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"></path>
+                          </svg>
+                          <svg class="MuiSvgIcon-root jss329 radio-dot" focusable="false" viewBox="0 0 24 24">
+                            <path d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"></path>
+                          </svg>
+                        </div>
+                      </span>
+                    </span>
+                    <span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1">
+                      <span>Madhmoun Permit</span>
+                    </span>
+                  </label>
+
+                </div>
+              </fieldset>
+
+              <!-- State 1: Tenancy Contract -->
+              <div id="viewTenancy" class="view-panel active">
+                <div class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2">
+                  <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12">
+                    <div class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2 form-inputs-row">
+                      <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-sm-9">
+                        <div class="jss331">
+                          <p class="MuiTypography-root jss339 MuiTypography-body1">
+                            Tenancy contract number <span class="jss341">*</span>
+                          </p>
+                          <div class="MuiFormControl-root MuiTextField-root jss332 MuiFormControl-fullWidth">
+                            <div class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth">
+                              <input class="MuiInputBase-input MuiOutlinedInput-input" id="tenancyNumberInput" name="userName" placeholder="Enter tenancy contract number" type="text" autocomplete="off">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-sm-3 btn-container-cell">
+                        <button class="MuiButtonBase-root MuiButton-root MuiButton-text jss231 MuiButton-fullWidth" type="submit">
+                          <span>Verify</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- State 2: Certificate -->
+              <div id="viewCertificate" class="view-panel">
+                <div class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2 cert-top-row">
+                  <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-sm-6">
+                    <div class="jss331">
+                      <p class="MuiTypography-root jss339 MuiTypography-body1">
+                        Certificate Type <span class="jss341">*</span>
+                      </p>
+                      <div class="MuiFormControl-root MuiTextField-root jss332 MuiFormControl-fullWidth custom-select-box">
+                        <select id="certTypeSelect" class="MuiInputBase-input MuiOutlinedInput-input native-select">
+                          <option value="" disabled selected>Select Certificate Type</option>
+                          <option value="ownership">Ownership Certificate (Title Deed)</option>
+                          <option value="siteplan">Site Plan Certificate</option>
+                          <option value="mortgage">Mortgage Certificate</option>
+                          <option value="valuation">Valuation Certificate</option>
+                        </select>
+                        <img src="assets/angle-small-down-bold.svg" alt="arrow" class="select-arrow-icon">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-sm-6">
+                    <div class="jss331">
+                      <p class="MuiTypography-root jss339 MuiTypography-body1">
+                        Issuance date <span class="jss341">*</span>
+                      </p>
+                      <div class="MuiFormControl-root MuiTextField-root jss332 MuiFormControl-fullWidth date-box">
+                        <input class="MuiInputBase-input MuiOutlinedInput-input" id="certDateInput" type="text" placeholder="Enter Issuance Date" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'">
+                        <svg class="calendar-svg-icon" viewBox="0 0 24 24" fill="#757575">
+                          <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2 form-inputs-row" style="margin-top: 14px;">
+                  <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-sm-9">
+                    <div class="jss331">
+                      <p class="MuiTypography-root jss339 MuiTypography-body1">
+                        Certificate number <span class="jss341">*</span>
+                      </p>
+                      <div class="MuiFormControl-root MuiTextField-root jss332 MuiFormControl-fullWidth">
+                        <div class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth">
+                          <input class="MuiInputBase-input MuiOutlinedInput-input" id="certNumberInput" placeholder="Enter certificate number" type="text" autocomplete="off">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-sm-3 btn-container-cell">
+                    <button class="MuiButtonBase-root MuiButton-root MuiButton-text jss231 MuiButton-fullWidth" type="submit">
+                      <span>Verify</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- State 3: Madhmoun Permit -->
+              <div id="viewPermit" class="view-panel">
+                <div class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2">
+                  <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12">
+                    <div class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2 form-inputs-row">
+                      <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-sm-9">
+                        <div class="jss331">
+                          <p class="MuiTypography-root jss339 MuiTypography-body1">
+                            Permit Number <span class="jss341">*</span>
+                          </p>
+                          <div class="MuiFormControl-root MuiTextField-root jss332 MuiFormControl-fullWidth">
+                            <div class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth">
+                              <input class="MuiInputBase-input MuiOutlinedInput-input" id="permitNumberInput" placeholder="Enter permit number" type="text" autocomplete="off">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-sm-3 btn-container-cell">
+                        <button class="MuiButtonBase-root MuiButton-root MuiButton-text jss231 MuiButton-fullWidth" type="submit">
+                          <span>Verify</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dynamic Alert Feedback -->
+              <div id="statusAlert" class="verify-alert-msg" style="display: none;"></div>
+
+            </div>
+
+            <!-- Bottom Box (jss226): reCAPTCHA Prompt & Badge -->
+            <div class="jss226">
+              <div class="recaptcha-instruction-text">
+                <span>Please check the box below to proceed</span>
+              </div>
+              
+              <div class="jss227" id="recaptchaStrip">
+                <div class="grecaptcha-badge-styled" id="captchaBox">
+                  <div class="grecaptcha-blue-label">
+                    <span>protected by <strong>reCAPTCHA</strong></span>
+                  </div>
+                  <div class="grecaptcha-icon-square">
+                    <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA logo" class="re-arrow-logo" onerror="this.src='assets/verify.svg'">
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="jss199">
+    <div class="MuiContainer-root MuiContainer-maxWidthLg">
+      <div class="MuiGrid-root jss182 MuiGrid-container">
+        
+        <!-- Logo Column -->
+        <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-3">
+          <div class="jss195">
+            <img alt="ADREC Logo" class="jss196 desktop-footer-logo" src="assets/adrec-logo-footer.svg">
+            <div class="mobile-footer-brand">
+              <img alt="DARI Logo" class="mobile-dari-logo" src="assets/dari-logo-colored.svg">
+              <span class="footer-logo-divider"></span>
+              <img alt="ADREC Logo" class="mobile-adrec-logo" src="assets/adrec-logo-footer.svg">
+            </div>
+            <div class="mobile-verify-row">
+              <button class="footer-verify-btn mobile-verify-btn" type="button">
+                <img src="assets/shield-check.svg" alt="verify" class="footer-verify-icon">
+                <span>Verify Document</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle Columns (Company, Support, Languages) -->
+        <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6">
+          <div class="MuiGrid-root jss185 MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-justify-content-xs-space-between">
+            
+            <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4 MuiGrid-grid-md-4">
+              <h6 class="MuiTypography-root jss201 MuiTypography-subtitle1">
+                <span>Company</span>
+              </h6>
+              <nav class="MuiList-root jss202 MuiList-padding">
+                <a href="#"><span>About us</span></a>
+                <a href="#"><span>Become a Partner</span></a>
+                <a href="#"><span>Terms and Conditions</span></a>
+                <a href="#"><span>Privacy Policy</span></a>
+                <a href="#"><span>Contact Us</span></a>
+              </nav>
+            </div>
+
+            <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4 MuiGrid-grid-md-4">
+              <h6 class="MuiTypography-root jss201 MuiTypography-subtitle1">
+                <span>Support</span>
+              </h6>
+              <nav class="MuiList-root jss202 MuiList-padding">
+                <a href="#"><span>Help</span></a>
+                <a href="mailto:support@dari.ae"><span>support@dari.ae</span></a>
+                <a href="tel:600523333"><span>600523333</span></a>
+              </nav>
+            </div>
+
+            <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4 MuiGrid-grid-md-4">
+              <h6 class="MuiTypography-root jss201 MuiTypography-subtitle1">
+                <span>Languages</span>
+              </h6>
+              <nav class="MuiList-root jss202 MuiList-padding">
+                <a href="#"><span class="jss205"><span>العربية</span></span></a>
+                <a href="#"><span class="active-lang">English</span></a>
+              </nav>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Download Buttons & Verify Document Button -->
+        <div class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-3">
+          <div class="app-badges-and-btn desktop-only-badges">
+            <div class="badges-row">
+              <a href="https://apps.apple.com/ae/app/dari/id1607496296" target="_blank" rel="noopener" title="Download on the App Store">
+                <img alt="Download on the App Store" class="jss184" src="assets/Download_on_the_App_Store.svg">
+              </a>
+              <a href="https://play.google.com/store/apps/details?id=ae.adres.dari" target="_blank" rel="noopener" title="Get it on Google Play">
+                <img alt="Get it on Google Play" class="jss184" src="assets/googleplayStore.svg">
+              </a>
+            </div>
+            <button class="footer-verify-btn desktop-verify-btn" type="button">
+              <span>Verify Document</span>
+            </button>
+          </div>
+          <div class="mobile-download-row">
+            <span class="mobile-download-label">Download the app :</span>
+            <div class="mobile-download-icons">
+              <a href="https://apps.apple.com/ae/app/dari/id1607496296" target="_blank" rel="noopener" title="App Store">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="#000"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.93-2.85-.9.04-1.98.6-2.62 1.35-.57.65-1.07 1.72-.93 2.74 1 .08 2-.49 2.62-1.24z"/></svg>
+              </a>
+              <a href="https://play.google.com/store/apps/details?id=ae.adres.dari" target="_blank" rel="noopener" title="Google Play">
+                <svg width="32" height="34" viewBox="0 0 512 512"><path fill="#00e676" d="M375.9 227.1L107.5 72.2c-15.6-9-33.5-.8-33.5 17.2v433.2c0 18 17.9 26.2 33.5 17.2l268.4-154.9-100-98.9 100-98.9z"/><path fill="#ff3d00" d="M107.5 72.2l268.4 154.9-100 98.9-168.4-253.8z"/><path fill="#ffc107" d="M470.9 227.1l-95 54.9-99.9-56 99.9-56 95 57.1c9.3 5.6 9.3 14.4 0 20z"/><path fill="#1976d2" d="M107.5 449.8l168.4-253.8 100 98.9-268.4 154.9z"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Bottom Row: Copyright, UUID & Social Media -->
+      <div class="footer-copyright-row">
+        <div class="legal-text-wrap">
+          <p>© 2026 ADREC, The solution for all real estate requirements in Abu Dhabi.</p>
+          <p class="uuid-text">UUID: 2164596872</p>
+        </div>
+        <div class="social-links-wrap">
+          <span class="social-prefix">Follow us on :</span>
+          <a href="https://www.linkedin.com/company/dariatdmt" target="_blank" rel="noopener" title="LinkedIn">
+            <img src="assets/linkdinIcon.svg" alt="linkedin">
+          </a>
+          <a href="https://twitter.com/dariatdmt" target="_blank" rel="noopener" title="X (Twitter)">
+            <img src="assets/exSocial.svg" alt="twitter">
+          </a>
+          <a href="https://www.youtube.com/channel/UC9kF7-Xg_n9Fz1m3D8c9Q9A" target="_blank" rel="noopener" title="YouTube">
+            <img src="assets/youtubeIcon.svg" alt="youtube">
+          </a>
+          <a href="https://www.facebook.com/dariatdmt" target="_blank" rel="noopener" title="Facebook">
+            <img src="assets/facebookIcon.svg" alt="facebook">
+          </a>
+          <a href="https://www.instagram.com/dariatdmt" target="_blank" rel="noopener" title="Instagram">
+            <img src="assets/instagram.svg" alt="instagram">
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ==================== FLOATING CHAT WIDGET ==================== -->
+  <button class="floating-headset-btn" id="floatingChat" title="Communication Channel" aria-label="Support">
+    <img src="assets/commNewIcon.svg" alt="Support Chat">
+  </button>
+
+  <!-- ==================== MOBILE BOTTOM NAVIGATION ==================== -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+    <a href="#" class="bottom-nav-item">
+      <div class="bottom-nav-icon-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <g><path d="M11.115 0.694131C10.809 0.418662 10.4118 0.266235 10 0.266235C9.58824 0.266235 9.19105 0.418662 8.885 0.694131L0 8.6908V17.3575C0 18.0647 0.280952 18.743 0.781049 19.2431C1.28115 19.7432 1.95942 20.0241 2.66667 20.0241H17.3333C18.0406 20.0241 18.7189 19.7432 19.219 19.2431C19.719 18.743 20 18.0647 20 17.3575V8.6908L11.115 0.694131ZM12.5 18.355H7.5V14.1666C7.5 13.5036 7.76339 12.8677 8.23223 12.3989C8.70107 11.93 9.33696 11.6666 10 11.6666C10.663 11.6666 11.2989 11.93 11.7678 12.3989C12.2366 12.8677 12.5 13.5036 12.5 14.1666V18.355ZM18.3333 17.355C18.3333 17.6202 18.228 17.8745 18.0404 18.0621C17.8529 18.2496 17.5985 18.355 17.3333 18.355H14.1667V14.1666C14.1667 13.0616 13.7277 12.0018 12.9463 11.2204C12.1649 10.439 11.1051 9.99997 10 9.99997C8.89493 9.99997 7.83512 10.439 7.05372 11.2204C6.27232 12.0018 5.83333 13.0616 5.83333 14.1666V18.355H2.66667C2.40145 18.355 2.1471 18.2496 1.95956 18.0621C1.77202 17.8745 1.66667 17.6202 1.66667 17.355V9.43247L10 1.93246L18.3333 9.43247V17.355Z" fill="#484456"></path></g>
+          <g clip-path="url(#clip0_3551_786)"><path d="M10 11.6667C9.33696 11.6667 8.70107 11.9301 8.23223 12.399C7.76339 12.8678 7.5 13.5037 7.5 14.1667V20.0217H12.5V14.1667C12.5 13.5037 12.2366 12.8678 11.7678 12.399C11.2989 11.9301 10.663 11.6667 10 11.6667Z" fill="#159553"></path></g>
+        </svg>
+      </div>
+      <span>Home</span>
+    </a>
+    <a href="#" class="bottom-nav-item">
+      <div class="bottom-nav-icon-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <g><path d="M16.5233 2.84501L14.655 0.976678C14.3461 0.666102 13.9787 0.419866 13.5741 0.252222C13.1694 0.0845773 12.7355 -0.00114639 12.2975 1.15766e-05H5C4.33696 1.15766e-05 3.70107 0.263404 3.23223 0.732245C2.76339 1.20109 2.5 1.83697 2.5 2.50001V20H17.5V5.20168C17.4978 4.3181 17.1468 3.47112 16.5233 2.84501ZM15.345 4.02334C15.3869 4.06882 15.4261 4.11667 15.4625 4.16668H13.3333V2.03751C13.3833 2.07388 13.4312 2.11311 13.4767 2.15501L15.345 4.02334ZM4.16667 18.3333V2.50001C4.16667 2.279 4.25446 2.06704 4.41074 1.91076C4.56702 1.75448 4.77899 1.66668 5 1.66668H11.6667V5.83334H15.8333V18.3333H4.16667ZM5.83333 13.3333H14.1667V8.33335H5.83333V13.3333ZM7.5 10H12.5V11.6667H7.5V10ZM5.83333 15H14.1667V16.6667H5.83333V15Z" fill="#484456"></path></g>
+          <g clip-path="url(#clip0_3572_545)"><path d="M12.5 11.6667H7.5V10H12.5V11.6667ZM17.5 5.83333V20H2.5V2.5C2.5 1.83696 2.76339 1.20107 3.23223 0.732233C3.70107 0.263392 4.33696 0 5 0L11.6667 0V5.83333H17.5ZM14.1667 15H5.83333V16.6667H14.1667V15ZM14.1667 8.33333H5.83333V13.3333H14.1667V8.33333ZM16.5233 2.845L14.655 0.976667C14.2826 0.612287 13.8299 0.340289 13.3333 0.1825V4.16667H17.3208C17.163 3.66938 16.8897 3.21649 16.5233 2.845Z" fill="#159553"></path></g>
+        </svg>
+      </div>
+      <span>Applications</span>
+    </a>
+    <a href="#" class="bottom-nav-item active">
+      <div class="bottom-nav-icon-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <g clip-path="url(#clip0_3572_549)"><path d="M0 2.5V9.16667H9.16667V0H2.5C1.83696 0 1.20107 0.263392 0.732233 0.732233C0.263392 1.20107 0 1.83696 0 2.5ZM7.5 7.5H1.66667V2.5C1.66667 2.27899 1.75446 2.06702 1.91074 1.91074C2.06702 1.75446 2.27899 1.66667 2.5 1.66667H7.5V7.5Z" fill="#484456"></path><path d="M0 17.4999C0 18.163 0.263392 18.7988 0.732233 19.2677C1.20107 19.7365 1.83696 19.9999 2.5 19.9999H9.16667V10.8333H0V17.4999ZM1.66667 12.4999H7.5V18.3333H2.5C2.27899 18.3333 2.06702 18.2455 1.91074 18.0892C1.75446 17.9329 1.66667 17.7209 1.66667 17.4999V12.4999Z" fill="#484456"></path><path d="M10.8334 10.8333V19.9999H17.5C18.1631 19.9999 18.799 19.7365 19.2678 19.2677C19.7366 18.7988 20 18.163 20 17.4999V10.8333H10.8334ZM18.3334 17.4999C18.3334 17.7209 18.2456 17.9329 18.0893 18.0892C17.933 18.2455 17.7211 18.3333 17.5 18.3333H12.5V12.4999H18.3334V17.4999Z" fill="#484456"></path><path d="M14.1667 9.16658H15.8334V5.83325H19.1667V4.16659H15.8334V0.833252H14.1667V4.16659H10.8334V5.83325H14.1667V9.16658Z" fill="#484456"></path></g>
+          <g clip-path="url(#clip0_3572_1247)"><path d="M0 2.5V9.16667H9.16667V0H2.5C1.83696 0 1.20107 0.263392 0.732233 0.732233C0.263392 1.20107 0 1.83696 0 2.5Z" fill="#159553"></path><path d="M0 17.4999C0 18.163 0.263392 18.7988 0.732233 19.2677C1.20107 19.7365 1.83696 19.9999 2.5 19.9999H9.16667V10.8333H0V17.4999Z" fill="#159553"></path><path d="M10.8334 10.8333V19.9999H17.5C18.1631 19.9999 18.799 19.7365 19.2678 19.2677C19.7366 18.7988 20 18.163 20 17.4999V10.8333H10.8334Z" fill="#159553"></path><path d="M14.1667 9.16658H15.8334V5.83325H19.1667V4.16659H15.8334V0.833252H14.1667V4.16659H10.8334V5.83325H14.1667V9.16658Z" fill="#159553"></path></g>
+        </svg>
+      </div>
+      <span>Services</span>
+    </a>
+    <a href="#" class="bottom-nav-item">
+      <div class="bottom-nav-icon-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <g clip-path="url(#clip0_3572_1254)"><path d="M12.3742 10.6225L7.83417 7.06833C7.1475 6.53083 6.18667 6.53 5.5 7.06833L0.959167 10.6217C0.35 11.0992 0 11.8175 0 12.5908V20H13.3333V12.5908C13.3333 11.8167 12.9833 11.0992 12.3742 10.6225ZM11.6667 18.3333H1.66667V12.5908C1.66667 12.3325 1.78333 12.0933 1.98667 11.9342L6.52667 8.38167C6.60833 8.31667 6.72333 8.3175 6.80667 8.38167L11.3467 11.9358C11.55 12.0942 11.6667 12.3342 11.6667 12.5917V18.3333ZM5 12.5H8.33333V15.8333H5V12.5ZM15 10.8333H16.6667V12.5H15V10.8333ZM15 14.1667H16.6667V15.8333H15V14.1667ZM11.6667 4.16667H13.3333V5.83333H11.6667V4.16667ZM16.6667 5.83333H15V4.16667H16.6667V5.83333ZM11.6667 7.5H13.3333V9.16667H11.6667V7.5ZM15 7.5H16.6667V9.16667H15V7.5ZM20 2.5V20H15V18.3333H18.3333V2.5C18.3333 2.04 17.96 1.66667 17.5 1.66667H10.8333C10.3733 1.66667 10 2.04 10 2.5V6.64833L8.33333 5.34417V2.5C8.33333 2.48583 8.33333 2.47083 8.33417 2.45667C8.3575 1.09833 9.46917 0 10.8333 0H17.5C18.8783 0 20 1.12167 20 2.5Z" fill="#484456"></path></g>
+          <g clip-path="url(#clip0_3572_215)"><path d="M17.5 0H10.8333C9.455 0 8.33333 1.12167 8.33333 2.5V5.41583C8.51583 5.51333 8.6925 5.625 8.86083 5.75667L11.6667 7.95333V7.50083H13.3333V9.2575L13.4008 9.31C14.4175 10.105 15 11.3017 15 12.5917V14.1675H16.6667V15.8342H15V20.0008H20V2.5C20 1.12167 18.8783 0 17.5 0ZM13.3333 5.83333H11.6667V4.16667H13.3333V5.83333ZM16.6667 12.5H15V10.8333H16.6667V12.5ZM16.6667 9.16667H15V7.5H16.6667V9.16667ZM16.6667 5.83333H15V4.16667H16.6667V5.83333ZM12.3742 10.6225L7.83417 7.06833C7.1475 6.53083 6.18667 6.53 5.5 7.06833L0.959167 10.6217C0.35 11.0992 0 11.8175 0 12.5908V20H13.3333V12.5908C13.3333 11.8167 12.9833 11.0992 12.3742 10.6225ZM8.33333 15.8333H5V12.5H8.33333V15.8333Z" fill="#159553"></path></g>
+        </svg>
+      </div>
+      <span>Properties</span>
+    </a>
+    <a href="#" class="bottom-nav-item">
+      <div class="bottom-nav-icon-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <g clip-path="url(#clip0_3564_807)"><path d="M19.1667 9.16675H0.833333C0.373096 9.16675 0 9.53984 0 10.0001C0 10.4603 0.373096 10.8334 0.833333 10.8334H19.1667C19.6269 10.8334 20 10.4603 20 10.0001C20 9.53984 19.6269 9.16675 19.1667 9.16675Z" fill="#484456"></path><path d="M19.1667 3.33325H0.833333C0.373096 3.33325 0 3.70635 0 4.16659C0 4.62682 0.373096 4.99992 0.833333 4.99992H19.1667C19.6269 4.99992 20 4.62682 20 4.16659C20 3.70635 19.6269 3.33325 19.1667 3.33325Z" fill="#484456"></path><path d="M19.1667 15H0.833333C0.373096 15 0 15.3731 0 15.8333C0 16.2936 0.373096 16.6667 0.833333 16.6667H19.1667C19.6269 16.6667 20 16.2936 20 15.8333C20 15.3731 19.6269 15 19.1667 15Z" fill="#484456"></path></g>
+          <g><path d="M18.75 6.75H1.25C0.559648 6.75 0 7.30965 0 8C0 8.69035 0.559648 9.25 1.25 9.25H18.75C19.4404 9.25 20 8.69035 20 8C20 7.30965 19.4404 6.75 18.75 6.75Z" fill="#159553"></path><path d="M1.25 3.41675H18.75C19.4404 3.41675 20 2.8571 20 2.16675C20 1.4764 19.4404 0.916748 18.75 0.916748H1.25C0.559648 0.916748 0 1.4764 0 2.16675C0 2.8571 0.559648 3.41675 1.25 3.41675Z" fill="#159553"></path><path d="M18.75 12.5835H1.25C0.559648 12.5835 0 13.1431 0 13.8335C0 14.5238 0.559648 15.0835 1.25 15.0835H18.75C19.4404 15.0835 20 14.5238 20 13.8335C20 13.1431 19.4404 12.5835 18.75 12.5835Z" fill="#159553"></path></g>
+        </svg>
+      </div>
+      <span>Menu</span>
+    </a>
+  </nav>
+
+  <script src="script.js"></script>
+</body>
+</html>
