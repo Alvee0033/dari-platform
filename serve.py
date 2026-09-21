@@ -190,17 +190,30 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
         clean_path = parsed.path.rstrip('/')
 
         # 1. API Endpoints
-        if clean_path in ['/api/documents', '/api/audit', '/api/generate-contract']:
+        if clean_path in ['/api/documents', '/api/audit', '/api/generate-contract', '/api/auth/login', '/api/auth/logout', '/api/auth/me']:
             return clean_path
         if clean_path.startswith('/api/contracts'):
             return clean_path
 
-        # 2. Admin Dashboard Routes
+        # 2. Login Route
+        if clean_path in ['/login', '/en/login', '/auth/login']:
+            self.path = '/login.html'
+            return None
+
+        # 3. Admin Dashboard Routes (Enforce authentication)
         if clean_path in ['/admin', '/en/admin']:
+            session_token = self.get_session_token()
+            user = db.validate_session(session_token)
+            if not user:
+                # Redirect to separate login page
+                self.send_response(302)
+                self.send_header('Location', '/login')
+                self.end_headers()
+                return 'REDIRECTED'
             self.path = '/admin.html'
             return None
 
-        # 3. Static asset remapping (assets/ or root CSS/JS files)
+        # 4. Static asset remapping (assets/ or root CSS/JS files)
         if '/assets/' in parsed.path:
             asset_rel = parsed.path[parsed.path.index('/assets/') + 1:]
             self.path = '/' + asset_rel
@@ -208,14 +221,14 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.path += '?' + parsed.query
             return None
 
-        for filename in ['style.css', 'script.js', 'admin.css', 'admin.js', 'bottom_nav_data.json', 'documents.json', 'audit_log.json', 'favicon.ico']:
+        for filename in ['style.css', 'script.js', 'admin.css', 'admin.js', 'login.html', 'bottom_nav_data.json', 'documents.json', 'audit_log.json', 'favicon.ico']:
             if parsed.path.endswith('/' + filename):
                 self.path = '/' + filename
                 if parsed.query:
                     self.path += '?' + parsed.query
                 return None
 
-        # 4. SPA Document Verification public routes
+        # 5. SPA Document Verification public routes
         spa_routes = {
             '',
             '/',
@@ -244,6 +257,18 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
 
         return None
 
+    def get_session_token(self):
+        cookie_header = self.headers.get('Cookie', '')
+        if 'adrec_session=' in cookie_header:
+            parts = cookie_header.split(';')
+            for part in parts:
+                if 'adrec_session=' in part:
+                    return part.strip().split('adrec_session=')[1].split(';')[0].strip()
+        auth_header = self.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            return auth_header[7:].strip()
+        return None
+
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -253,7 +278,21 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         api_target = self.normalize_path()
-        if api_target == '/api/documents':
+        if api_target == 'REDIRECTED':
+            return
+        if api_target == '/api/auth/me':
+            token = self.get_session_token()
+            user = db.validate_session(token)
+            if user:
+                self.send_json_data({"status": "success", "authenticated": True, "user": user})
+            else:
+                self.send_response(401)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(b'{"status": "error", "authenticated": false, "message": "Not authenticated"}')
+            return
+        elif api_target == '/api/documents':
             docs = db.get_documents_db(os.path.join(DIRECTORY, 'documents.json'))
             self.send_json_data(docs)
             return
@@ -356,6 +395,54 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         clean_path = parsed.path.rstrip('/')
+
+        if clean_path == '/api/auth/login':
+            content_len = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_len) if content_len > 0 else b'{}'
+            try:
+                data = json.loads(post_body.decode('utf-8'))
+                ident = data.get('identifier') or data.get('email') or data.get('username') or ''
+                pwd = data.get('password', '')
+                user = db.authenticate_user(ident, pwd)
+                if user:
+                    token = db.create_session(user['id'])
+                    cookie_val = f"adrec_session={token}; Path=/; Max-Age=604800; SameSite=Lax; HttpOnly"
+                    resp = json.dumps({"status": "success", "token": token, "user": user}).encode('utf-8')
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Content-Length', str(len(resp)))
+                    self.send_header('Set-Cookie', cookie_val)
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(resp)
+                    return
+                else:
+                    self.send_response(401)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(b'{"status": "error", "message": "Invalid officer credentials or password"}')
+                    return
+            except Exception as e:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
+                return
+
+        if clean_path == '/api/auth/logout':
+            token = self.get_session_token()
+            if token:
+                db.destroy_session(token)
+            cookie_val = "adrec_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly"
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Set-Cookie', cookie_val)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(b'{"status": "success"}')
+            return
 
         if clean_path in ['/api/documents', '/api/audit']:
             content_len = int(self.headers.get('Content-Length', 0))

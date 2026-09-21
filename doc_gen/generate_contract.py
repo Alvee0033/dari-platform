@@ -278,6 +278,34 @@ def fit_or_wrap_text(text, max_w, max_lines=2, initial_sz=20, min_sz=14, font_na
     return lines[:max_lines], f
 
 
+HAS_RAQM = False
+try:
+    from PIL import features
+    HAS_RAQM = features.check('raqm')
+except Exception:
+    pass
+
+def safe_draw_text(draw, xy, text, fill=None, font=None, anchor=None, direction=None):
+    """Draw text safely whether libraqm is compiled into PIL or not."""
+    if not text:
+        return
+    text = str(text)
+    kwargs = {}
+    if fill is not None:
+        kwargs["fill"] = fill
+    if font is not None:
+        kwargs["font"] = font
+    if anchor is not None:
+        kwargs["anchor"] = anchor
+    if direction and HAS_RAQM:
+        kwargs["direction"] = direction
+    try:
+        draw.text(xy, text, **kwargs)
+    except Exception:
+        # Fallback if direction or font features fail without libraqm
+        kwargs.pop("direction", None)
+        draw.text(xy, text, **kwargs)
+
 def draw_cell_multiline(draw, lines, font, cx, cy, color, anchor="mm", line_spacing=None, direction=None):
     """Draws single or multi-line text with balanced vertical spacing around cy."""
     if not lines:
@@ -292,18 +320,18 @@ def draw_cell_multiline(draw, lines, font, cx, cy, color, anchor="mm", line_spac
         direction = None
 
     if n == 1:
-        draw.text((cx, cy), lines[0], fill=color, font=font, anchor=anchor, direction=direction)
+        safe_draw_text(draw, (cx, cy), lines[0], fill=color, font=font, anchor=anchor, direction=direction)
     elif n == 2:
         y1 = cy - (line_spacing // 2)
         y2 = cy + (line_spacing // 2)
-        draw.text((cx, y1), lines[0], fill=color, font=font, anchor=anchor, direction=direction)
-        draw.text((cx, y2), lines[1], fill=color, font=font, anchor=anchor, direction=direction)
+        safe_draw_text(draw, (cx, y1), lines[0], fill=color, font=font, anchor=anchor, direction=direction)
+        safe_draw_text(draw, (cx, y2), lines[1], fill=color, font=font, anchor=anchor, direction=direction)
     elif n >= 3:
         total_h = (n - 1) * line_spacing
         y0 = cy - (total_h // 2)
         for i, line in enumerate(lines):
             ly = y0 + i * line_spacing
-            draw.text((cx, ly), line, fill=color, font=font, anchor=anchor, direction=direction)
+            safe_draw_text(draw, (cx, ly), line, fill=color, font=font, anchor=anchor, direction=direction)
 
 
 def render_page_1(data: dict, template_path: str) -> Image.Image:
@@ -384,7 +412,7 @@ def render_page_1(data: dict, template_path: str) -> Image.Image:
         ar_dir = "rtl" if has_arabic(comp_ar) else None
         lines_ar, f_ar = fit_or_wrap_text(comp_ar, max_w=540, max_lines=2, initial_sz=22, min_sz=16, font_name=ar_font)
         if len(lines_ar) == 1:
-            draw.text((1068, 1266), lines_ar[0], fill=color, font=f_ar, anchor="mm", direction=ar_dir)
+            safe_draw_text(draw, (1068, 1266), lines_ar[0], fill=color, font=f_ar, anchor="mm", direction=ar_dir)
         else:
             draw_cell_multiline(draw, lines_ar, f_ar, cx=1068, cy=1264, color=color, anchor="mm", direction=ar_dir, line_spacing=24)
 
@@ -457,13 +485,13 @@ def render_page_2(data: dict, template_path: str) -> Image.Image:
     ar_font_nar = "arabic_regular" if has_arabic(t_nat_ar) else "regular"
     ar_dir_nar = "rtl" if has_arabic(t_nat_ar) else None
     lines_nar, f_nar = fit_or_wrap_text(t_nat_ar, max_w=220, max_lines=1, initial_sz=20, min_sz=14, font_name=ar_font_nar)
-    draw.text((674, 450), lines_nar[0], fill=color, font=f_nar, anchor="mm", direction=ar_dir_nar)
+    safe_draw_text(draw, (674, 450), lines_nar[0], fill=color, font=f_nar, anchor="mm", direction=ar_dir_nar)
 
     ar_font_tar = "arabic_regular" if has_arabic(t_name_ar) else "regular"
     ar_dir_tar = "rtl" if has_arabic(t_name_ar) else None
     lines_tar, f_tar = fit_or_wrap_text(t_name_ar, max_w=320, max_lines=2, initial_sz=20, min_sz=14, font_name=ar_font_tar)
     if len(lines_tar) == 1:
-        draw.text((1176, 450), lines_tar[0], fill=color, font=f_tar, anchor="mm", direction=ar_dir_tar)
+        safe_draw_text(draw, (1176, 450), lines_tar[0], fill=color, font=f_tar, anchor="mm", direction=ar_dir_tar)
     else:
         draw_cell_multiline(draw, lines_tar, f_tar, cx=1176, cy=446, color=color, anchor="mm", direction=ar_dir_tar, line_spacing=22)
 
@@ -515,7 +543,7 @@ def render_page_2(data: dict, template_path: str) -> Image.Image:
         ar_font_uar = "arabic_regular" if has_arabic(unit_usage_ar) else "regular"
         ar_dir_uar = "rtl" if has_arabic(unit_usage_ar) else None
         lines_uar, f_uar = fit_or_wrap_text(unit_usage_ar, max_w=210, max_lines=1, initial_sz=18, min_sz=13, font_name=ar_font_uar)
-        draw.text((365, 1358), lines_uar[0], fill=color, font=f_uar, anchor="mm", direction=ar_dir_uar)
+        safe_draw_text(draw, (365, 1358), lines_uar[0], fill=color, font=f_uar, anchor="mm", direction=ar_dir_uar)
     if unit_usage_en:
         lines_uen, f_uen = fit_or_wrap_text(unit_usage_en, max_w=210, max_lines=1, initial_sz=18, min_sz=13, font_name="regular")
         draw.text((365, 1392), lines_uen[0], fill=color, font=f_uen, anchor="mm")
@@ -547,7 +575,7 @@ def render_page_2(data: dict, template_path: str) -> Image.Image:
         ar_font_utar = "arabic_regular" if has_arabic(ut_ar_display) else "regular"
         ar_dir_utar = "rtl" if has_arabic(ut_ar_display) else None
         lines_utar, f_utar = fit_or_wrap_text(ut_ar_display, max_w=195, max_lines=1, initial_sz=18, min_sz=13, font_name=ar_font_utar)
-        draw.text((909, 1358), lines_utar[0], fill=color, font=f_utar, anchor="mm", direction=ar_dir_utar)
+        safe_draw_text(draw, (909, 1358), lines_utar[0], fill=color, font=f_utar, anchor="mm", direction=ar_dir_utar)
     if ut_en_display:
         lines_uten, f_uten = fit_or_wrap_text(ut_en_display, max_w=195, max_lines=1, initial_sz=18, min_sz=13, font_name="regular")
         draw.text((909, 1392), lines_uten[0], fill=color, font=f_uten, anchor="mm")

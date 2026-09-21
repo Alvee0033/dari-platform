@@ -255,57 +255,36 @@ function setupEventListeners() {
 }
 
 // ==================== AUTHENTICATION GUARD & LOGOUT CONTROLLER ====================
-function setupAuthGuard() {
-  const overlay = document.getElementById('adminLoginOverlay');
-  const form = document.getElementById('adminLoginForm');
-  const errorMsg = document.getElementById('loginErrorMsg');
+async function setupAuthGuard() {
   const btnLogoutNav = document.getElementById('btnLogoutNav');
   const btnLogoutSettings = document.getElementById('btnLogoutSettings');
   const btnNavLogout = document.getElementById('btnNavLogout');
 
-  function checkAuth() {
-    const isAuthed = sessionStorage.getItem(SESSION_KEY_AUTH) === 'active';
-    if (!isAuthed) {
-      if (overlay) {
-        overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
+  async function checkAuth() {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (!res.ok) {
+        window.location.href = '/login';
+        return;
       }
-    } else {
-      if (overlay) {
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
+      const data = await res.json();
+      if (!data || data.status !== 'success') {
+        window.location.href = '/login';
+        return;
+      }
+      if (data.user) {
+        adminSettings.name = data.user.name || adminSettings.name;
+        adminSettings.role = data.user.role || adminSettings.role;
+        adminSettings.email = data.user.email || adminSettings.email;
+        applySettingsToUI();
+      }
+    } catch (e) {
+      const isAuthed = sessionStorage.getItem(SESSION_KEY_AUTH) === 'active';
+      if (!isAuthed) {
+        window.location.href = '/login';
       }
     }
   }
-
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-      const password = document.getElementById('loginPassword').value;
-
-      const storedEmail = (adminSettings.email || 'officer@adrec.gov.ae').trim().toLowerCase();
-      const storedPass = adminSettings.passwordHash || 'admin123';
-
-      const isValidUser = (email === storedEmail || email === 'admin' || email === 'officer@adrec.gov.ae');
-      const isValidPass = (password === storedPass || (password === 'admin123' && storedPass === 'admin123'));
-
-      if (isValidUser && isValidPass) {
-        sessionStorage.setItem(SESSION_KEY_AUTH, 'active');
-        if (overlay) overlay.classList.remove('active');
-        document.body.style.overflow = '';
-        if (errorMsg) errorMsg.style.display = 'none';
-        showToast(`Welcome back, ${adminSettings.name || 'Officer'}! Session authenticated.`, 'success');
-      } else {
-        if (errorMsg) {
-          errorMsg.textContent = 'Invalid officer credentials or password. Please try again.';
-          errorMsg.style.display = 'block';
-        }
-      }
-    });
-  }
-
-
 
   [btnLogoutNav, btnLogoutSettings, btnNavLogout].forEach(btn => {
     if (btn) {
@@ -313,30 +292,17 @@ function setupAuthGuard() {
     }
   });
 
-  checkAuth();
+  await checkAuth();
 }
 
-function handleLogout() {
+async function handleLogout() {
   sessionStorage.removeItem(SESSION_KEY_AUTH);
-  const overlay = document.getElementById('adminLoginOverlay');
-  const passInp = document.getElementById('loginPassword');
-  const errorMsg = document.getElementById('loginErrorMsg');
-
-  if (passInp) passInp.value = '';
-  if (errorMsg) errorMsg.style.display = 'none';
-
-  // Close other open modals
-  closeDocModal();
-  closeSettingsModal();
-  closeContractModal();
-  closeDeleteModal();
-  closeBatchDeleteModal();
-
-  if (overlay) {
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-  showToast('Logged out of Operations Center', 'info');
+  sessionStorage.removeItem('dari_session_token');
+  document.cookie = 'adrec_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (e) {}
+  window.location.href = '/login';
 }
 
 // ==================== DOCUMENT FORM (SINGLE PAGE LAYOUT) ====================

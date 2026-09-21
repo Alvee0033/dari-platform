@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Officer Authentication - ADREC Operations Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin.css">
+  <link rel="icon" type="image/svg+xml" href="/assets/verify.svg">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0A1628 0%, #0F2A38 50%, #071F18 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Poppins', sans-serif;
+      box-sizing: border-box;
+      padding: 20px;
+    }
+    .login-container {
+      width: 100%;
+      max-width: 460px;
+    }
+    .login-page-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 36px 32px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      animation: cardEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes cardEnter {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .login-brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    .login-logo-img {
+      height: 46px;
+      object-fit: contain;
+    }
+    .login-badge {
+      background: #FEF2F2;
+      color: #991B1B;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      border: 1px solid #FECACA;
+      text-transform: uppercase;
+    }
+    .login-title-wrap h1 {
+      margin: 0 0 6px 0;
+      font-size: 22px;
+      font-weight: 700;
+      color: #0F172A;
+    }
+    .login-title-wrap p {
+      margin: 0 0 24px 0;
+      font-size: 13.5px;
+      color: #64748B;
+      line-height: 1.5;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+    }
+    .login-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .login-input-wrap svg {
+      position: absolute;
+      left: 14px;
+      pointer-events: none;
+      color: #94A3B8;
+    }
+    .login-input {
+      width: 100%;
+      height: 48px;
+      padding: 0 44px 0 44px;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #0F172A;
+      outline: none;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+    .login-input:focus {
+      border-color: #005438;
+      box-shadow: 0 0 0 3px rgba(0, 84, 56, 0.12);
+    }
+    .btn-toggle-password {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      opacity: 0.6;
+    }
+    .btn-toggle-password:hover {
+      opacity: 1;
+    }
+    .login-error-msg {
+      background: #FEF2F2;
+      border: 1px solid #FCA5A5;
+      color: #B91C1C;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      display: none;
+    }
+    .btn-login-submit {
+      width: 100%;
+      height: 48px;
+      background: #005438;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background 0.2s ease;
+    }
+    .btn-login-submit:hover {
+      background: #003F2A;
+    }
+    .login-page-footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12.5px;
+      color: #94A3B8;
+    }
+    .login-page-footer a {
+      color: #38BDF8;
+      text-decoration: none;
+    }
+    .login-page-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-page-card">
+      <div class="login-brand-header">
+        <img src="/assets/adrec-logo-header.svg" alt="ADREC" class="login-logo-img">
+        <span class="login-badge">Tier-1 Security</span>
+      </div>
+
+      <div class="login-title-wrap">
+        <h1>Officer Authentication</h1>
+        <p>Abu Dhabi Real Estate Centre (ADREC) Secure Operations Console</p>
+      </div>
+
+      <form id="officerLoginForm" onsubmit="return handleOfficerLogin(event);">
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Officer Email or Username</label>
+          <div class="login-input-wrap">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            <input type="text" id="loginEmail" class="login-input" placeholder="officer@adrec.gov.ae or admin" autocomplete="username" required autofocus>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="loginPassword">Password</label>
+          <div class="login-input-wrap">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            <input type="password" id="loginPassword" class="login-input" placeholder="Enter officer password" autocomplete="current-password" required>
+            <button type="button" class="btn-toggle-password" id="btnTogglePwd" title="Show password">👁️</button>
+          </div>
+        </div>
+
+        <div id="loginErrorMsg" class="login-error-msg"></div>
+
+        <button type="submit" class="btn-login-submit" id="btnLoginSubmit">
+          <span>Authenticate &amp; Enter Console</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <div class="login-page-footer">
+      <p>&larr; <a href="/en/app/verify-document">Return to Public Verification Portal</a></p>
+      <p>&copy; 2026 Abu Dhabi Real Estate Centre (ADREC). Official Government Portal.</p>
+    </div>
+  </div>
+
+  <script>
+    const toggleBtn = document.getElementById('btnTogglePwd');
+    const pwdInput = document.getElementById('loginPassword');
+    if (toggleBtn && pwdInput) {
+      toggleBtn.addEventListener('click', () => {
+        if (pwdInput.type === 'password') {
+          pwdInput.type = 'text';
+          toggleBtn.textContent = '🙈';
+        } else {
+          pwdInput.type = 'password';
+          toggleBtn.textContent = '👁️';
+        }
+      });
+    }
+
+    async function handleOfficerLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errorMsg = document.getElementById('loginErrorMsg');
+      const submitBtn = document.getElementById('btnLoginSubmit');
+
+      errorMsg.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Verifying credentials...</span>';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: email, password: password })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+          sessionStorage.setItem('dari_admin_session_v1', 'active');
+          if (data.token) {
+            sessionStorage.setItem('dari_session_token', data.token);
+            document.cookie = `adrec_session=${data.token}; path=/; max-age=604800; SameSite=Lax`;
+          }
+          window.location.href = '/admin';
+        } else {
+          errorMsg.textContent = data.message || 'Invalid credentials. Access denied.';
+          errorMsg.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Authenticate & Enter Console</span>';
+        }
+      } catch (err) {
+        errorMsg.textContent = 'Connection error. Please try again.';
+        errorMsg.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Authenticate & Enter Console</span>';
+      }
+      return false;
+    }
+  </script>
+</body>
+</html>
