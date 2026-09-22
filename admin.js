@@ -54,15 +54,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Load documents, audit logs, and settings
 async function loadData() {
-  const cachedDocs = localStorage.getItem(STORAGE_KEY_DOCS);
-  if (cachedDocs) {
-    try {
-      documents = JSON.parse(cachedDocs);
-    } catch (e) {
-      console.error('Failed to parse cached documents', e);
-    }
-  }
-
+  // Always fetch from server — never pre-load localStorage.
+  // localStorage was causing deleted docs to flash back on every reload.
   try {
     const res = await fetch(`/api/documents?_t=${Date.now()}`, {
       cache: 'no-store',
@@ -75,7 +68,6 @@ async function loadData() {
         localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
 
         // Background: check which contracts are already generated server-side.
-        // Fire all checks in parallel — no await, totally non-blocking.
         documents.forEach(doc => {
           if (doc.documentNumber && !_generatedContracts.has(doc.documentNumber)) {
             fetch(`/api/contracts/${doc.documentNumber}/status`, { cache: 'no-store' })
@@ -88,14 +80,10 @@ async function loadData() {
     }
   } catch (e) {
     console.warn('Could not fetch /api/documents', e);
-  }
-
-  const cachedAudit = localStorage.getItem(STORAGE_KEY_AUDIT);
-  if (cachedAudit) {
-    try {
-      auditLogs = JSON.parse(cachedAudit);
-    } catch (e) {
-      console.error('Failed to parse cached audit logs', e);
+    // Only use localStorage as a last resort if server is completely unreachable
+    const cachedDocs = localStorage.getItem(STORAGE_KEY_DOCS);
+    if (cachedDocs) {
+      try { documents = JSON.parse(cachedDocs); } catch (ex) {}
     }
   }
 
@@ -113,6 +101,10 @@ async function loadData() {
     }
   } catch (e) {
     console.warn('Could not fetch /api/audit', e);
+    const cachedAudit = localStorage.getItem(STORAGE_KEY_AUDIT);
+    if (cachedAudit) {
+      try { auditLogs = JSON.parse(cachedAudit); } catch (ex) {}
+    }
   }
 }
 
@@ -506,14 +498,30 @@ function closeBatchDeleteModal() {
 
 async function handleConfirmBatchDelete() {
   const count = selectedDocIds.size;
+  const idsToDelete = [...selectedDocIds];
+
+  // Remove from in-memory array and localStorage immediately
   documents = documents.filter(doc => !selectedDocIds.has(doc.id));
   selectedDocIds.clear();
+  localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
 
   renderAll();
   closeBatchDeleteModal();
   updateBatchBar();
   showToast(`Successfully deleted ${count} documents from registry`, 'success');
-  await saveDocuments();
+
+  // Fire DELETE for each doc in parallel — atomic per-record DB deletes
+  try {
+    await Promise.all(
+      idsToDelete.map(id =>
+        fetch(`/api/documents/${encodeURIComponent(id)}`, { method: 'DELETE' })
+          .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status} for ${id}`); })
+      )
+    );
+  } catch (err) {
+    console.error('Batch delete partial failure, re-syncing full list:', err);
+    await saveDocuments(); // fallback: full sync
+  }
 }
 
 function batchUpdateStatus(status) {
@@ -1284,14 +1292,26 @@ async function handleConfirmDelete() {
   if (!deletingDocId) return;
   const doc = documents.find(d => d.id === deletingDocId);
   const docNumber = doc ? doc.documentNumber : '';
-  documents = documents.filter(d => d.id !== deletingDocId);
-  selectedDocIds.delete(deletingDocId);
+  const idToDelete = deletingDocId;
+
+  // Remove from in-memory array and localStorage immediately
+  documents = documents.filter(d => d.id !== idToDelete);
+  selectedDocIds.delete(idToDelete);
+  localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
 
   renderAll();
   closeDeleteModal();
   updateBatchBar();
   showToast(`Document ${docNumber} removed from registry`, 'success');
-  await saveDocuments();
+
+  // Fire DELETE directly to DB — no full-array POST race condition
+  try {
+    const res = await fetch(`/api/documents/${encodeURIComponent(idToDelete)}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  } catch (err) {
+    console.error('Delete failed on server, re-syncing full list:', err);
+    await saveDocuments(); // fallback: full sync
+  }
 }
 
 // Direct Test in Public Portal

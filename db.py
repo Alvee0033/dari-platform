@@ -351,3 +351,33 @@ def save_audit_db(logs, json_filepath):
         conn.close()
     except Exception as e:
         logger.error(f"Error saving audit log to DB: {e}")
+
+def delete_document_db(doc_id: str, json_filepath: str):
+    """Delete a single document by ID from both Postgres and fallback JSON file."""
+    doc_id = str(doc_id).strip()
+
+    # Update fallback JSON file
+    if os.path.exists(json_filepath):
+        try:
+            with open(json_filepath, 'r', encoding='utf-8') as f:
+                docs = json.load(f)
+            docs = [d for d in docs if str(d.get('id', '')) != doc_id]
+            with open(json_filepath, 'w', encoding='utf-8') as f:
+                json.dump(docs, f, indent=2)
+        except Exception as e:
+            logger.error(f"Error updating local json on delete: {e}")
+
+    # Delete from Postgres
+    conn = get_db_connection()
+    if not conn:
+        return
+    try:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM documents WHERE id = %s;", (doc_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        logger.info(f"[DB] Deleted document id={doc_id}")
+    except Exception as e:
+        logger.error(f"Error deleting document from DB: {e}")
+        raise
