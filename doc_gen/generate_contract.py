@@ -116,7 +116,7 @@ def resolve_font_name(requested_font: str, text: str) -> str:
 
 def render_qr_code(card: Image.Image, qr_text: str):
     """
-    Renders the official top-left QR code containing the direct verification link with contract ID.
+    Renders the official top-left QR code containing the direct verification link with contract number only.
     Exact position: x=[84, 191], y=[67, 174], size=107x107 px.
     """
     if not qr_text:
