@@ -8,7 +8,8 @@ const STORAGE_KEY_AUDIT = 'dari_audit_log_v1';
 
 // Capture direct verification query parameter from URL (e.g. from scanned QR code)
 const initialUrlParams = new URLSearchParams(window.location.search);
-const initialContractParam = initialUrlParams.get('contractNumber') || 
+const initialContractParam = initialUrlParams.get('search') ||
+                            initialUrlParams.get('contractNumber') || 
                             initialUrlParams.get('contractNo') || 
                             initialUrlParams.get('documentNumber') || 
                             initialUrlParams.get('id') || 

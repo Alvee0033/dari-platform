@@ -126,7 +126,7 @@ def render_qr_code(card: Image.Image, qr_text: str):
     if text.startswith("http://") or text.startswith("https://"):
         qr_url = text
     else:
-        qr_url = f"https://dari-aec.com/en/app/verify-tenant-contract?contractNumber={text}"
+        qr_url = f"https://dari-aec.com/en/app/verify-tenant-contract?search={text}"
 
     # Clean the 108x108 region first to cover any existing artifact
     draw = ImageDraw.Draw(card)
@@ -147,11 +147,7 @@ def render_qr_code(card: Image.Image, qr_text: str):
 def render_common_footer(card: Image.Image, contract_no: str, contract_date: str):
     """
     Renders common bottom footer text on all contract pages.
-    Exact calibration against official demo & template baselines:
-      Verification URL (Left): https://www.dari.ae/en/app/verify-tenant-contract at x=47, baseline y=1920
-      Verification URL (Right): https://www.dari.ae/en/app/verify-tenant-contract at x=995, baseline y=1903
-      Contract No (ID): contract_no centered at x=200, baseline y=1948 (Inter-Regular 15, anchor='ms')
-      Contract Date: contract_date centered at x=1245, baseline y=1937 (Inter-Regular 14, anchor='ms')
+    Erases background text first so template URLs/numbers never show or overlap.
     """
     draw = ImageDraw.Draw(card)
     font_cno = get_font("regular", 15)
@@ -160,8 +156,14 @@ def render_common_footer(card: Image.Image, contract_no: str, contract_date: str
     color_text = (45, 45, 45)  # Exact tone as official demo (NOT pure black)
     color_url = (39, 91, 119)  # Official DARI brand link color
 
-    # 1. Verification URL - Left (under English notice, exactly covering underline x=48..421 at y=1920)
+    # White out old template footer areas to prevent ghost text/wrong domains
+    draw.rectangle([(40, 1905), (440, 1928)], fill=(255, 255, 255, 255))
+    draw.rectangle([(980, 1888), (1380, 1910)], fill=(255, 255, 255, 255))
+    draw.rectangle([(130, 1935), (320, 1965)], fill=(255, 255, 255, 255))
+    draw.rectangle([(1180, 1925), (1340, 1958)], fill=(255, 255, 255, 255))
+
     url_text = "https://dari-aec.com/en/app/verify-tenant-contract"
+    # 1. Verification URL - Left (under English notice, exactly covering underline x=48..421 at y=1920)
     draw.text((47, 1920), url_text, fill=color_url, font=font_url, anchor="ls")
 
     # 2. Verification URL - Right (under Arabic notice, exactly covering underline x=996..1369 at y=1903)
@@ -636,18 +638,18 @@ def render_page_2(data: dict, template_path: str) -> Image.Image:
     return card
 
 
-def render_signature_qr(content: str, target_size=(113, 112)) -> Image.Image:
+def render_signature_qr(content: str, target_size=(112, 112)) -> Image.Image:
     """Generates high-contrast electronic approval signature QR code matching official contract."""
     qr = qrcode.QRCode(
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=3,
+        box_size=4,
         border=1,
     )
     qr.add_data(content)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
-    return img.resize(target_size, Image.NEAREST)
+    return img.resize(target_size, Image.Resampling.NEAREST)
 
 
 def _load_signature_qr(custom_b64: str, default_path: str, target_size: tuple) -> Image.Image:
@@ -687,22 +689,35 @@ def render_page_3(data: dict, template_path: str) -> Image.Image:
     render_qr_code(card, c_no)
 
     # 2. Signature Approval QR Codes
-    # Paths to default QR images (extracted from official Gohar Ali Irshad Muhammad PDF)
-    _defaults_dir = os.path.join(os.path.dirname(__file__), "defaults")
-    default_tenant_qr = os.path.join(_defaults_dir, "tenant_sig_qr_130.png")
-    default_lessor_qr = os.path.join(_defaults_dir, "lessor_sig_qr_130.png")
+    active_cno = str(c_no).strip() if c_no else "202401451594"
+    default_sig_url = f"https://dari-aec.com/en/app/verify-tenant-contract?search={active_cno}"
+
+    # White out signature QR target zones first to guarantee clean placement without background bleed
+    draw = ImageDraw.Draw(card)
+    draw.rectangle([(325, 765), (445, 885)], fill=(255, 255, 255, 255))
+    draw.rectangle([(963, 765), (1085, 885)], fill=(255, 255, 255, 255))
 
     # Custom override QR (base64 PNG from admin upload)
     sig_qr = data.get("signatureQR", {})
     custom_tenant_b64 = sig_qr.get("tenantQR", "")
     custom_lessor_b64 = sig_qr.get("lessorQR", "")
 
+    _defaults_dir = os.path.join(os.path.dirname(__file__), "defaults")
+    default_tenant_qr = os.path.join(_defaults_dir, "tenant_sig_qr_130.png")
+    default_lessor_qr = os.path.join(_defaults_dir, "lessor_sig_qr_130.png")
+
     # Tenant Signature QR (Left signature box)
-    tnt_qr_img = _load_signature_qr(custom_tenant_b64, default_tenant_qr, (112, 112))
+    if custom_tenant_b64:
+        tnt_qr_img = _load_signature_qr(custom_tenant_b64, default_tenant_qr, (112, 112))
+    else:
+        tnt_qr_img = render_signature_qr(default_sig_url, (112, 112))
     card.paste(tnt_qr_img, (331, 770), tnt_qr_img)
 
     # Lessor Signature QR (Right signature box)
-    lsr_qr_img = _load_signature_qr(custom_lessor_b64, default_lessor_qr, (112, 112))
+    if custom_lessor_b64:
+        lsr_qr_img = _load_signature_qr(custom_lessor_b64, default_lessor_qr, (112, 112))
+    else:
+        lsr_qr_img = render_signature_qr(default_sig_url, (112, 112))
     card.paste(lsr_qr_img, (969, 770), lsr_qr_img)
 
     # 3. Common Bottom Footer
