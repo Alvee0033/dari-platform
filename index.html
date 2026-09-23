@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260923_05">
   <link rel="icon" type="image/svg+xml" href="assets/verify.svg">
   <script>
     (function(){
@@ -168,6 +168,23 @@
             <div class="result-status-text" id="resStatusText">Tenancy contract is active and verified</div>
           </div>
 
+          <!-- Detail Card 0: Contract Number & Active Status -->
+          <div class="result-detail-card result-contract-num-card">
+            <div class="contract-num-header">
+              <div class="detail-label" id="resDocNumberLabel">Contract Number</div>
+              <span class="status-badge-active" id="resDocStatusBadge">Active</span>
+            </div>
+            <div class="contract-num-row">
+              <span class="detail-value" id="resDocNumberValue">202401451594</span>
+              <button type="button" class="btn-copy-contract" id="btnCopyContract" title="Copy contract number">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
           <!-- Detail Card 1: Actual usage type -->
           <div class="result-detail-card">
             <div class="detail-label" id="resUsageLabel">Actual usage type</div>
@@ -178,26 +195,25 @@
           <div class="result-detail-card result-dates-grid">
             <div class="detail-col">
               <div class="detail-label">Start date</div>
-              <div class="detail-value" id="resStartDateValue">2026-02-01</div>
+              <div class="detail-value" id="resStartDateValue">2026-03-16</div>
             </div>
             <div class="detail-col">
               <div class="detail-label">End date</div>
-              <div class="detail-value" id="resEndDateValue">2027-01-31</div>
+              <div class="detail-value" id="resEndDateValue">2027-03-15</div>
             </div>
           </div>
 
           <!-- Detail Card 3: Tenant -->
           <div class="result-detail-card">
             <div class="detail-label" id="resPartyLabel">Tenant</div>
-            <div class="detail-value" id="resPartyValue">RANJITH SOURINGAL RAMACHANDRAN</div>
+            <div class="detail-value" id="resPartyValue">Gohar Ali Irshad Muhammad</div>
           </div>
 
           <!-- Detail Card 4: Registered units -->
           <div class="result-detail-card">
             <div class="detail-label" id="resUnitLabel">Registered units</div>
-            <div class="detail-value" id="resUnitValue">UNT168956</div>
+            <div class="detail-value" id="resUnitValue">Flat No. 254</div>
           </div>
-
 
           <!-- Action Button: Verify Another Document -->
           <button type="button" class="btn-verify-another" id="btnVerifyAnother">
@@ -622,6 +638,6 @@
     </a>
   </nav>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=20260923_05"></script>
 </body>
 </html>

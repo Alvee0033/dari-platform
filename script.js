@@ -297,6 +297,9 @@ async function handleVerifySubmit(e, isInstant = false) {
       if (verifyResultView) {
         const resIcon = document.getElementById('resStatusIcon');
         const resText = document.getElementById('resStatusText');
+        const resDocNumberLabel = document.getElementById('resDocNumberLabel');
+        const resDocNumberValue = document.getElementById('resDocNumberValue');
+        const resDocStatusBadge = document.getElementById('resDocStatusBadge');
         const resUsageLabel = document.getElementById('resUsageLabel');
         const resUsageValue = document.getElementById('resUsageValue');
         const resStartDateValue = document.getElementById('resStartDateValue');
@@ -312,14 +315,30 @@ async function handleVerifySubmit(e, isInstant = false) {
             ? 'Tenancy contract is active and verified' 
             : (matched.type === 'certificate' ? 'Title deed certificate is active and verified' : 'Real estate permit is active and verified');
         }
+
+        // Contract Number & Status Badge
+        if (resDocNumberLabel) {
+          resDocNumberLabel.textContent = matched.type === 'certificate' 
+            ? 'Certificate Number' 
+            : (matched.type === 'permit' ? 'Permit Number' : 'Contract Number');
+        }
+        if (resDocNumberValue) {
+          resDocNumberValue.textContent = matched.documentNumber || value;
+        }
+        if (resDocStatusBadge) {
+          const status = matched.status || 'Active';
+          resDocStatusBadge.textContent = status;
+          resDocStatusBadge.className = `status-badge-active ${status.toLowerCase()}`;
+        }
+
         if (resUsageLabel) resUsageLabel.textContent = matched.type === 'permit' ? 'Permit Type' : 'Actual usage type';
         if (resUsageValue) resUsageValue.textContent = matched.usageType || 'Residential';
-        if (resStartDateValue) resStartDateValue.textContent = matched.startDate || '2026-02-01';
-        if (resEndDateValue) resEndDateValue.textContent = matched.endDate || '2027-01-31';
+        if (resStartDateValue) resStartDateValue.textContent = matched.startDate || '2026-03-16';
+        if (resEndDateValue) resEndDateValue.textContent = matched.endDate || '2027-03-15';
         if (resPartyLabel) resPartyLabel.textContent = matched.type === 'tenancy' ? 'Tenant' : (matched.type === 'certificate' ? 'Owner / Beneficiary' : 'Permit Holder');
-        if (resPartyValue) resPartyValue.textContent = matched.partyName || 'RANJITH SOURINGAL RAMACHANDRAN';
+        if (resPartyValue) resPartyValue.textContent = matched.partyName || 'Gohar Ali Irshad Muhammad';
         if (resUnitLabel) resUnitLabel.textContent = matched.type === 'permit' ? 'Permit / Ad Reference' : (matched.type === 'certificate' ? 'Plot / Sector Reference' : 'Registered units');
-        if (resUnitValue) resUnitValue.textContent = matched.unitOrPlot || matched.documentNumber;
+        if (resUnitValue) resUnitValue.textContent = matched.unitRegNo || matched.unitOrPlot || matched.documentNumber || 'UNT302977';
 
         verifyResultView.style.display = 'flex';
         verifyResultView.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -497,6 +516,39 @@ function setupResultView() {
 
   if (btnVerifyAnotherNotFound) {
     btnVerifyAnotherNotFound.addEventListener('click', showForm);
+  }
+
+  // Copy Contract Number button
+  const btnCopyContract = document.getElementById('btnCopyContract');
+  if (btnCopyContract && !btnCopyContract._bound) {
+    btnCopyContract._bound = true;
+    btnCopyContract.addEventListener('click', () => {
+      const numEl = document.getElementById('resDocNumberValue');
+      const textToCopy = numEl ? numEl.textContent.trim() : '';
+      if (!textToCopy) return;
+
+      const showCopied = () => {
+        btnCopyContract.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#137333" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        setTimeout(() => {
+          btnCopyContract.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+        }, 1500);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(showCopied).catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+
+      function fallbackCopy() {
+        const ta = document.createElement('textarea');
+        ta.value = textToCopy;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); showCopied(); } catch(e){}
+        document.body.removeChild(ta);
+      }
+    });
   }
 
   // Header & footer "Verify Document" buttons
