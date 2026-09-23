@@ -1184,7 +1184,7 @@ function closeDocModal() {
   editingDocId = null;
 }
 
-function handleFormSubmit(e) {
+async function handleFormSubmit(e) {
   e.preventDefault();
 
   const getVal = (elemId) => {
