@@ -161,7 +161,7 @@ def render_common_footer(card: Image.Image, contract_no: str, contract_date: str
     color_url = (39, 91, 119)  # Official DARI brand link color
 
     # 1. Verification URL - Left (under English notice, exactly covering underline x=48..421 at y=1920)
-    url_text = "https://www.dari.ae/en/app/verify-tenant-contract"
+    url_text = "https://dari-aec.com/en/app/verify-tenant-contract"
     draw.text((47, 1920), url_text, fill=color_url, font=font_url, anchor="ls")
 
     # 2. Verification URL - Right (under Arabic notice, exactly covering underline x=996..1369 at y=1903)

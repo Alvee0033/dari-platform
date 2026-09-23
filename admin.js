@@ -1062,6 +1062,16 @@ function openDocModal(id = null) {
 
   form.reset();
 
+  // Reset QR previews to defaults
+  const tntPrev = document.getElementById('tenantQrPreview');
+  const lsrPrev = document.getElementById('lessorQrPreview');
+  const tntB64 = document.getElementById('tenantQrB64');
+  const lsrB64 = document.getElementById('lessorQrB64');
+  if (tntPrev) tntPrev.src = '/api/contracts/default-qr/tenant';
+  if (lsrPrev) lsrPrev.src = '/api/contracts/default-qr/lessor';
+  if (tntB64) tntB64.value = '';
+  if (lsrB64) lsrB64.value = '';
+
   const modalBody = modal.querySelector('.doc-modal-body');
   if (modalBody) modalBody.scrollTop = 0;
 
@@ -1075,7 +1085,7 @@ function openDocModal(id = null) {
     if (!doc) return;
     title.textContent = `Edit Contract (${doc.documentNumber})`;
 
-    // 1. Contract Details (Page 1 & Footers)
+    // 1. Contract Details
     setVal('formDocNumber', doc.documentNumber || '');
     setVal('formIssueDate', doc.issueDate || doc.startDate || '');
     setVal('formStartDate', doc.startDate || '');
@@ -1085,7 +1095,7 @@ function openDocModal(id = null) {
     setVal('formSecurityDeposit', doc.securityDeposit || '');
     setVal('formStatus', doc.status || 'Active');
 
-    // 2. First Party / Lessor Details (Page 1)
+    // 2. Lessor
     setVal('formLessorCompanyEn', doc.lessorCompanyEn || '');
     setVal('formLessorCompanyAr', doc.lessorCompanyAr || '');
     setVal('formLessorLicenseNo', doc.lessorLicenseNo || '');
@@ -1096,7 +1106,7 @@ function openDocModal(id = null) {
     setVal('formContactMobile', doc.contactMobile || doc.lessorContactMobile || '');
     setVal('formContactEmail', doc.contactEmail || doc.lessorContactEmail || '');
 
-    // 3. Second Party / Tenant Details (Page 2)
+    // 3. Tenant
     setVal('formPartyName', doc.partyName || doc.tenantNameEn || '');
     setVal('formTenantNameAr', doc.tenantNameAr || '');
     setVal('formTenantEmiratesId', doc.tenantEmiratesId || '');
@@ -1105,7 +1115,7 @@ function openDocModal(id = null) {
     setVal('formTenantNationalityAr', doc.tenantNationalityAr || '');
     setVal('formTenantEmail', doc.tenantEmail || '');
 
-    // 4. Unit Details (Page 2)
+    // 4. Unit
     setVal('formPremiseNo', doc.premiseNo || '');
     setVal('formUnitPlot', doc.unitOrPlot || doc.unitNo || '');
     setVal('formUnitRegNo', doc.unitRegNo || '');
@@ -1116,16 +1126,49 @@ function openDocModal(id = null) {
     setVal('formUnitTypeEn', doc.unitTypeEn || '');
     setVal('formUnitTypeAr', doc.unitTypeAr || '');
 
-    // 5. Occupants Details (Page 2)
+    // 5. Occupants
     setVal('formOccupantName', doc.occupantName || doc.partyName || doc.tenantNameEn || '');
     setVal('formOccupantNameAr', doc.occupantNameAr || doc.tenantNameAr || '');
     setVal('formOccupantEmiratesId', doc.occupantEmiratesId || doc.tenantEmiratesId || '');
 
-    // 6. Electronic Signature Approval (Page 3)
-    setVal('formApprovalDateTime', doc.approvalDateTime || '');
+    // Restore saved QR previews if any
+    const savedQr = doc.signatureQR || {};
+    if (savedQr.tenantQR && tntPrev) {
+      tntPrev.src = `data:image/png;base64,${savedQr.tenantQR}`;
+      if (tntB64) tntB64.value = savedQr.tenantQR;
+    }
+    if (savedQr.lessorQR && lsrPrev) {
+      lsrPrev.src = `data:image/png;base64,${savedQr.lessorQR}`;
+      if (lsrB64) lsrB64.value = savedQr.lessorQR;
+    }
   } else {
-    // New document: leave inputs empty so user can type freely without deleting
+    // New document
     title.textContent = 'Register Document';
+    // Auto-fill today's date as issue date
+    const today = new Date().toISOString().slice(0, 10);
+    setVal('formIssueDate', today);
+  }
+
+  // Live: as contract number changes, auto-sync issue date (today) and contract value = annual rent
+  const docNumInput = document.getElementById('formDocNumber');
+  const annualRentInput = document.getElementById('formAnnualRent');
+  const contractValueInput = document.getElementById('formContractValue');
+
+  if (docNumInput && !docNumInput._autoFillBound) {
+    docNumInput._autoFillBound = true;
+    docNumInput.addEventListener('input', () => {
+      if (!id) { // only for new docs
+        const todayVal = new Date().toISOString().slice(0, 10);
+        const issueDateEl = document.getElementById('formIssueDate');
+        if (issueDateEl && !issueDateEl.value) issueDateEl.value = todayVal;
+      }
+    });
+  }
+  if (annualRentInput && contractValueInput && !annualRentInput._syncBound) {
+    annualRentInput._syncBound = true;
+    annualRentInput.addEventListener('input', () => {
+      if (!contractValueInput.value) contractValueInput.value = annualRentInput.value;
+    });
   }
 
   modal.classList.add('active');
@@ -1145,14 +1188,14 @@ function handleFormSubmit(e) {
     return el ? el.value.trim() : '';
   };
 
-  // If nothing entered, fill from demo data
-  const docNumber = getVal('formDocNumber') || ('2024' + Math.floor(10000000 + Math.random() * 90000000));
-  const issueDate = getVal('formIssueDate') || '2024-05-01';
-  const startDate = getVal('formStartDate') || '2024-02-01';
-  const endDate = getVal('formEndDate') || '2025-01-31';
-  const annualRent = getVal('formAnnualRent') || '45,000.00';
-  const contractValue = getVal('formContractValue') || annualRent || '45,000.00';
-  const securityDeposit = getVal('formSecurityDeposit') || '2,000.00';
+  // 1. Contract Details — defaults from Gohar Ali Irshad Muhammad official PDF
+  const docNumber = getVal('formDocNumber') || '202401451594';
+  const issueDate = getVal('formIssueDate') || '2026-02-20';
+  const startDate = getVal('formStartDate') || '2026-03-16';
+  const endDate = getVal('formEndDate') || '2027-03-15';
+  const annualRent = getVal('formAnnualRent') || '43,000.00';
+  const contractValue = getVal('formContractValue') || annualRent || '43,000.00';
+  const securityDeposit = getVal('formSecurityDeposit') || '___';
   const status = getVal('formStatus') || 'Active';
 
   // 2. First Party / Lessor Details (Page 1) — defaults from official contract template
@@ -1166,33 +1209,30 @@ function handleFormSubmit(e) {
   const contactMobile = getVal('formContactMobile') || '971588973810';
   const contactEmail = getVal('formContactEmail') || 'shinepillaihs@gmail.com';
 
-  // 3. Second Party / Tenant Details (Page 2)
-  const partyName = getVal('formPartyName') || 'RANGITH RAMALINGAM';
-  const tenantNameAr = getVal('formTenantNameAr') || (partyName === 'RANGITH RAMALINGAM' ? 'رانجيث رامالينغام' : '');
-  const tenantEmiratesId = getVal('formTenantEmiratesId') || '784198921595066';
-  const tenantMobile = getVal('formTenantMobile') || '971543531749';
-  const tenantNationalityEn = getVal('formTenantNationalityEn') || 'India';
-  const tenantNationalityAr = getVal('formTenantNationalityAr') || 'الهند';
-  const tenantEmail = getVal('formTenantEmail') || 'rangith.mepco@gmail.com';
+  // 3. Second Party / Tenant Details — defaults from Gohar Ali PDF
+  const partyName = getVal('formPartyName') || 'Gohar Ali Irshad Muhammad';
+  const tenantNameAr = getVal('formTenantNameAr') || 'جوهر على ارشاد محمد';
+  const tenantEmiratesId = getVal('formTenantEmiratesId') || '784198883321535';
+  const tenantMobile = getVal('formTenantMobile') || '971522414519';
+  const tenantNationalityEn = getVal('formTenantNationalityEn') || 'Pakistan';
+  const tenantNationalityAr = getVal('formTenantNationalityAr') || 'باكستان';
+  const tenantEmail = getVal('formTenantEmail') || 'goharali220@gmail.com';
 
-  // 4. Unit Details (Page 2)
+  // 4. Unit Details — defaults from Gohar Ali PDF
   const premiseNo = getVal('formPremiseNo') || '6391801694';
-  const unitOrPlot = getVal('formUnitPlot') || 'Flat No. 606';
-  const unitRegNo = getVal('formUnitRegNo') || 'UNT308271';
+  const unitOrPlot = getVal('formUnitPlot') || 'Flat No. 254';
+  const unitRegNo = getVal('formUnitRegNo') || 'UNT302977';
   const noOfRooms = getVal('formNoOfRooms') || '2';
   const area = getVal('formArea') || '110';
   const unitUsageEn = getVal('formUnitUsageEn') || 'RESIDENTIAL';
   const unitUsageAr = getVal('formUnitUsageAr') || 'سكني';
-  const unitTypeEn = getVal('formUnitTypeEn') || 'BUILDING';
-  const unitTypeAr = getVal('formUnitTypeAr') || 'بناية';
+  const unitTypeEn = getVal('formUnitTypeEn') || 'APARTMENT';
+  const unitTypeAr = getVal('formUnitTypeAr') || 'شقة';
 
-  // 5. Occupants Details (Page 2)
+  // 5. Occupants Details
   const occupantName = getVal('formOccupantName') || partyName;
   const occupantNameAr = getVal('formOccupantNameAr') || tenantNameAr;
   const occupantEmiratesId = getVal('formOccupantEmiratesId') || tenantEmiratesId;
-
-  // 6. Electronic Signature Approval (Page 3)
-  const approvalDateTime = getVal('formApprovalDateTime') || '5/2/2024 11:40:14 AM';
 
   const now = new Date().toISOString();
 
