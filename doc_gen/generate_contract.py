@@ -690,7 +690,8 @@ def render_page_3(data: dict, template_path: str) -> Image.Image:
 
     # 2. Signature Approval QR Codes
     active_cno = str(c_no).strip() if c_no else "202401451594"
-    default_sig_url = f"https://dari-aec.com/en/app/verify-tenant-contract?search={active_cno}"
+    tenant_sig_url = f"https://dari-aec.com/en/app/verify-tenant-contract?search={active_cno}"
+    default_lessor_content = "contractNo#202401452705 issDte#5/2/2024 11:40:14 AM"
 
     # White out signature QR target zones first to guarantee clean placement without background bleed
     draw = ImageDraw.Draw(card)
@@ -706,18 +707,18 @@ def render_page_3(data: dict, template_path: str) -> Image.Image:
     default_tenant_qr = os.path.join(_defaults_dir, "tenant_sig_qr_130.png")
     default_lessor_qr = os.path.join(_defaults_dir, "lessor_sig_qr_130.png")
 
-    # Tenant Signature QR (Left signature box)
+    # Tenant Signature QR (Left signature box) -> Verification Link
     if custom_tenant_b64:
         tnt_qr_img = _load_signature_qr(custom_tenant_b64, default_tenant_qr, (112, 112))
     else:
-        tnt_qr_img = render_signature_qr(default_sig_url, (112, 112))
+        tnt_qr_img = render_signature_qr(tenant_sig_url, (112, 112))
     card.paste(tnt_qr_img, (331, 770), tnt_qr_img)
 
-    # Lessor Signature QR (Right signature box)
+    # Lessor Signature QR (Right signature box) -> Default Permanent Signature QR
     if custom_lessor_b64:
         lsr_qr_img = _load_signature_qr(custom_lessor_b64, default_lessor_qr, (112, 112))
     else:
-        lsr_qr_img = render_signature_qr(default_sig_url, (112, 112))
+        lsr_qr_img = render_signature_qr(default_lessor_content, (112, 112))
     card.paste(lsr_qr_img, (969, 770), lsr_qr_img)
 
     # 3. Common Bottom Footer
