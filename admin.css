@@ -3738,3 +3738,60 @@ body {
 }
 
 
+
+/* ==================== QR UPLOAD SECTION ==================== */
+.qr-upload-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  background: #fafafa;
+  transition: border-color 0.2s;
+}
+.qr-upload-box:hover { border-color: #4a90d9; }
+
+.qr-upload-preview {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.qr-upload-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.qr-upload-btn {
+  display: inline-block;
+  padding: 5px 12px;
+  background: #1a56db;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  user-select: none;
+}
+.qr-upload-btn:hover { background: #1740a0; }
+
+.qr-clear-btn {
+  padding: 5px 12px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.qr-clear-btn:hover { background: #e5e7eb; }

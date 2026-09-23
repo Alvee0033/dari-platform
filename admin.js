@@ -123,6 +123,30 @@ function saveSettings() {
   applySettingsToUI();
 }
 
+// ==================== QR UPLOAD HELPERS ====================
+window.handleQrUpload = function(input, previewId, hiddenId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const b64 = e.target.result.split(',')[1]; // strip data URI prefix
+    const preview = document.getElementById(previewId);
+    const hidden = document.getElementById(hiddenId);
+    if (preview) preview.src = e.target.result;
+    if (hidden) hidden.value = b64;
+  };
+  reader.readAsDataURL(file);
+};
+
+window.clearQrUpload = function(previewId, fileInputId, hiddenId, defaultSrc) {
+  const preview = document.getElementById(previewId);
+  const fileInput = document.getElementById(fileInputId);
+  const hidden = document.getElementById(hiddenId);
+  if (preview) preview.src = defaultSrc + '?_t=' + Date.now();
+  if (fileInput) fileInput.value = '';
+  if (hidden) hidden.value = '';
+};
+
 function applySettingsToUI() {
   const navName = document.getElementById('navUserName');
   const navRole = document.getElementById('navUserRole');
@@ -1223,8 +1247,11 @@ function handleFormSubmit(e) {
     occupantNameAr,
     occupantEmiratesId,
 
-    // Signature
-    approvalDateTime,
+    // Signature QR (base64, stored so re-generation uses same QR)
+    signatureQR: {
+      tenantQR: (document.getElementById('tenantQrB64') || {}).value || '',
+      lessorQR: (document.getElementById('lessorQrB64') || {}).value || ''
+    },
 
     updatedAt: now
   };
@@ -1254,10 +1281,16 @@ function handleFormSubmit(e) {
   closeDocModal();
 
   // Pre-generate contract in the background right after saving so it's instantly viewable
+  const _tenantQrB64 = (document.getElementById('tenantQrB64') || {}).value || '';
+  const _lessorQrB64 = (document.getElementById('lessorQrB64') || {}).value || '';
   fetch('/api/generate-contract', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ documentNumber: docNumber, force: true })
+    body: JSON.stringify({
+      documentNumber: docNumber,
+      force: true,
+      signatureQR: { tenantQR: _tenantQrB64, lessorQR: _lessorQrB64 }
+    })
   }).then(r => { if (r.ok) _generatedContracts.add(docNumber); }).catch(() => {});
 
   if (window.innerWidth <= 768) {

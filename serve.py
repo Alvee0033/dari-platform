@@ -88,6 +88,9 @@ def generate_contract_for_number(contract_num, custom_data=None, force=False):
                 contract_data["units"] = custom_data["units"]
             if "occupants" in custom_data:
                 contract_data["occupants"] = custom_data["occupants"]
+            # Pass through signature QR overrides (base64 PNGs from admin upload)
+            if "signatureQR" in custom_data and isinstance(custom_data["signatureQR"], dict):
+                contract_data["signatureQR"] = custom_data["signatureQR"]
 
         if matched_doc:
             contract = contract_data.setdefault("contract", {})
@@ -204,6 +207,12 @@ def generate_contract_for_number(contract_num, custom_data=None, force=False):
                 occ0["fullName"] = matched_doc.get("occupantName") or tenant.get("fullNameEn", "")
                 occ0["emiratesId"] = str(matched_doc.get("occupantEmiratesId") or tenant.get("emiratesId", ""))
                 occ0["fullNameAr"] = matched_doc.get("occupantNameAr") or matched_doc.get("tenantNameAr", "")
+
+            # Restore stored signature QR if not already set by custom_data
+            if "signatureQR" not in contract_data:
+                stored_qr = matched_doc.get("signatureQR")
+                if stored_qr and isinstance(stored_qr, dict):
+                    contract_data["signatureQR"] = stored_qr
         else:
             contract_data.setdefault("contract", {})["contractNumber"] = str(contract_num)
 
@@ -400,6 +409,29 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(b'{"status":"error","message":"Missing contract reference"}')
+            return
+
+        # Serve default QR images: /api/contracts/default-qr/tenant or /lessor
+        if sub.startswith('default-qr/'):
+            qr_type = sub.split('/')[-1]  # 'tenant' or 'lessor'
+            qr_map = {
+                'tenant': os.path.join(DIRECTORY, 'doc_gen', 'defaults', 'tenant_sig_qr_130.png'),
+                'lessor': os.path.join(DIRECTORY, 'doc_gen', 'defaults', 'lessor_sig_qr_130.png'),
+            }
+            qr_file = qr_map.get(qr_type)
+            if qr_file and os.path.exists(qr_file):
+                with open(qr_file, 'rb') as f:
+                    data_bytes = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', 'image/png')
+                self.send_header('Content-Length', str(len(data_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'public, max-age=86400')
+                self.end_headers()
+                self.wfile.write(data_bytes)
+            else:
+                self.send_response(404)
+                self.end_headers()
             return
 
         # Check for status query: /api/contracts/202401452705/status

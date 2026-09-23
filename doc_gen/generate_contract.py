@@ -650,6 +650,30 @@ def render_signature_qr(content: str, target_size=(113, 112)) -> Image.Image:
     return img.resize(target_size, Image.NEAREST)
 
 
+def _load_signature_qr(custom_b64: str, default_path: str, target_size: tuple) -> Image.Image:
+    """
+    Returns a signature QR image:
+    1. If custom_b64 is provided (base64 PNG from upload), use that.
+    2. If the default file exists (extracted from official Gohar Ali PDF), use that.
+    3. Fallback: generate a blank white placeholder.
+    """
+    import base64, io as _io
+    if custom_b64:
+        try:
+            raw = base64.b64decode(custom_b64)
+            qr_img = Image.open(_io.BytesIO(raw)).convert("RGBA")
+            return qr_img.resize(target_size, Image.Resampling.NEAREST)
+        except Exception:
+            pass  # fall through to default
+
+    if default_path and os.path.exists(default_path):
+        qr_img = Image.open(default_path).convert("RGBA")
+        return qr_img.resize(target_size, Image.Resampling.NEAREST)
+
+    # Last resort: white placeholder
+    return Image.new("RGBA", target_size, (255, 255, 255, 255))
+
+
 def render_page_3(data: dict, template_path: str) -> Image.Image:
     """Renders Page 3: Electronic Approvals, Tenant & Lessor Signature QRs, and Footer."""
     card = get_template_image(template_path)
@@ -663,37 +687,22 @@ def render_page_3(data: dict, template_path: str) -> Image.Image:
     render_qr_code(card, c_no)
 
     # 2. Signature Approval QR Codes
-    # Extract tenant ID digits
-    t_eid = tenant.get("emiratesId", "").replace("-", "").strip()
-    if not t_eid:
-        occs = data.get("occupants", [{}])
-        if occs:
-            t_eid = occs[0].get("emiratesId", "").replace("-", "").strip()
-    if not t_eid:
-        t_eid = "784198921595066"
+    # Paths to default QR images (extracted from official Gohar Ali Irshad Muhammad PDF)
+    _defaults_dir = os.path.join(os.path.dirname(__file__), "defaults")
+    default_tenant_qr = os.path.join(_defaults_dir, "tenant_sig_qr_130.png")
+    default_lessor_qr = os.path.join(_defaults_dir, "lessor_sig_qr_130.png")
 
-    # Format approval datetime
-    approval_dt = contract.get("approvalDateTime", "")
-    if not approval_dt:
-        if c_date and "/" in c_date:
-            approval_dt = f"{c_date} 11:40:14 AM"
-        elif c_date and "-" in c_date:
-            parts = c_date.split("-")
-            if len(parts) == 3:
-                approval_dt = f"{int(parts[1])}/{int(parts[2])}/{parts[0]} 11:40:14 AM"
-            else:
-                approval_dt = "5/2/2024 11:40:14 AM"
-        else:
-            approval_dt = "5/2/2024 11:40:14 AM"
+    # Custom override QR (base64 PNG from admin upload)
+    sig_qr = data.get("signatureQR", {})
+    custom_tenant_b64 = sig_qr.get("tenantQR", "")
+    custom_lessor_b64 = sig_qr.get("lessorQR", "")
 
-    # Tenant Signature QR (Left signature box: centered at x=386.5, y=825.5)
-    tnt_qr_content = f"contractNo#{c_no} tntId#{t_eid} issDte# {approval_dt}"
-    tnt_qr_img = render_signature_qr(tnt_qr_content, (112, 112))
+    # Tenant Signature QR (Left signature box)
+    tnt_qr_img = _load_signature_qr(custom_tenant_b64, default_tenant_qr, (112, 112))
     card.paste(tnt_qr_img, (331, 770), tnt_qr_img)
 
-    # Lessor Signature QR (Right signature box: centered at x=1025.0, y=825.5)
-    lsr_qr_content = f"contractNo#{c_no} issDte# {approval_dt}"
-    lsr_qr_img = render_signature_qr(lsr_qr_content, (112, 112))
+    # Lessor Signature QR (Right signature box)
+    lsr_qr_img = _load_signature_qr(custom_lessor_b64, default_lessor_qr, (112, 112))
     card.paste(lsr_qr_img, (969, 770), lsr_qr_img)
 
     # 3. Common Bottom Footer

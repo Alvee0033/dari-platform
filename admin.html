@@ -560,20 +560,46 @@
             </div>
           </div>
 
-          <!-- 6. ELECTRONIC SIGNATURE APPROVAL (Page 3) -->
+          <!-- 6. ELECTRONIC SIGNATURE QR (Page 3) -->
           <div class="form-section-card" id="secSignature">
             <div class="form-section-header">
               <div class="form-section-icon">✍️</div>
               <div class="form-section-title-wrap">
-                <h4 class="form-section-title">6. Electronic Signature Approval (Page 3)</h4>
-                <p class="form-section-desc">Encodes into the Tenant &amp; Lessor digital signature stamps on Page 3</p>
+                <h4 class="form-section-title">6. Signature QR Codes (Page 3)</h4>
+                <p class="form-section-desc">Official QR stamps on the signature page. Default uses the verified Gohar Ali official QR — upload custom PNGs to override.</p>
               </div>
             </div>
 
-            <div class="form-group full-width">
-              <label class="form-label" for="formApprovalDateTime">Approval Date &amp; Time</label>
-              <input type="text" id="formApprovalDateTime" class="form-input" placeholder="e.g. 5/2/2024 11:40:14 AM">
-              <span class="form-hint">Used for cryptographic digital signature stamps on Page 3</span>
+            <div class="form-row">
+              <!-- Tenant QR -->
+              <div class="form-group">
+                <label class="form-label">Tenant Signature QR</label>
+                <div class="qr-upload-box" id="tenantQrUploadBox">
+                  <img id="tenantQrPreview" src="/api/contracts/default-qr/tenant" class="qr-upload-preview" alt="Tenant QR" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><rect width=\'80\' height=\'80\' fill=\'%23f0f0f0\'/><text x=\'40\' y=\'45\' text-anchor=\'middle\' fill=\'%23999\' font-size=\'10\'>Default QR</text></svg>'">
+                  <div class="qr-upload-actions">
+                    <label class="qr-upload-btn" for="formTenantQrFile">📤 Upload PNG</label>
+                    <input type="file" id="formTenantQrFile" accept="image/png,image/jpeg" style="display:none" onchange="handleQrUpload(this,'tenantQrPreview','tenantQrB64')">
+                    <button type="button" class="qr-clear-btn" onclick="clearQrUpload('tenantQrPreview','formTenantQrFile','tenantQrB64','/api/contracts/default-qr/tenant')">✕ Use Default</button>
+                  </div>
+                </div>
+                <input type="hidden" id="tenantQrB64" value="">
+                <span class="form-hint">Default: official Gohar Ali verified QR</span>
+              </div>
+
+              <!-- Lessor QR -->
+              <div class="form-group">
+                <label class="form-label">Lessor Signature QR</label>
+                <div class="qr-upload-box" id="lessorQrUploadBox">
+                  <img id="lessorQrPreview" src="/api/contracts/default-qr/lessor" class="qr-upload-preview" alt="Lessor QR" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><rect width=\'80\' height=\'80\' fill=\'%23f0f0f0\'/><text x=\'40\' y=\'45\' text-anchor=\'middle\' fill=\'%23999\' font-size=\'10\'>Default QR</text></svg>'">
+                  <div class="qr-upload-actions">
+                    <label class="qr-upload-btn" for="formLessorQrFile">📤 Upload PNG</label>
+                    <input type="file" id="formLessorQrFile" accept="image/png,image/jpeg" style="display:none" onchange="handleQrUpload(this,'lessorQrPreview','lessorQrB64')">
+                    <button type="button" class="qr-clear-btn" onclick="clearQrUpload('lessorQrPreview','formLessorQrFile','lessorQrB64','/api/contracts/default-qr/lessor')">✕ Use Default</button>
+                  </div>
+                </div>
+                <input type="hidden" id="lessorQrB64" value="">
+                <span class="form-hint">Default: official Gohar Ali verified QR</span>
+              </div>
             </div>
           </div>
 
