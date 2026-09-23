@@ -1131,14 +1131,14 @@ function handleFormSubmit(e) {
   const securityDeposit = getVal('formSecurityDeposit') || '2,000.00';
   const status = getVal('formStatus') || 'Active';
 
-  // 2. First Party / Lessor Details (Page 1)
-  const lessorCompanyEn = getVal('formLessorCompanyEn') || 'SANAD REAL ESTATE PROPERTIES L.L.C.';
-  const lessorCompanyAr = getVal('formLessorCompanyAr') || (lessorCompanyEn === 'SANAD REAL ESTATE PROPERTIES L.L.C.' ? 'شركة سند للعقارات ذ.م.م' : lessorCompanyEn);
+  // 2. First Party / Lessor Details (Page 1) — defaults from official contract template
+  const lessorCompanyEn = getVal('formLessorCompanyEn') || 'INTERNATIONAL CONSTRUCTION CONTRACTING LLC';
+  const lessorCompanyAr = getVal('formLessorCompanyAr') || 'شركة انترناشونال للمقاولات الانشائية ذ.م.م';
   const lessorLicenseNo = getVal('formLessorLicenseNo') || 'CN-1048007';
-  const lessorMobile = getVal('formLessorMobile') || '971501783578';
-  const lessorEmail = getVal('formLessorEmail') || 'rangith.mepco@gmail.com';
+  const lessorMobile = getVal('formLessorMobile') || '-';
+  const lessorEmail = getVal('formLessorEmail') || '-';
   const lessorContactEn = getVal('formLessorContactEn') || 'SHINE PILLAI HARIDASAN PILLAI SANTHA KUMARI';
-  const lessorContactAr = getVal('formLessorContactAr') || (lessorContactEn === 'SHINE PILLAI HARIDASAN PILLAI SANTHA KUMARI' ? 'شاين بيلاي هاريداسان بيلاي سانثا كوماري' : lessorContactEn);
+  const lessorContactAr = getVal('formLessorContactAr') || 'شاين بيلاي هاريداسان بيلاي سانثا كوماري';
   const contactMobile = getVal('formContactMobile') || '971588973810';
   const contactEmail = getVal('formContactEmail') || 'shinepillaihs@gmail.com';
 
