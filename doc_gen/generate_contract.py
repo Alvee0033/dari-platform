@@ -496,8 +496,8 @@ def render_page_2(data: dict, template_path: str) -> Image.Image:
 
     # 2. TENANT DETAILS TABLE (Cells are pure white in template, dividers preserved)
     # Arabic row (y=450)
-    t_nat_ar = tenant.get("nationalityAr", "الهند")
-    t_name_ar = tenant.get("fullNameAr", "رانجيث رامالينغام")
+    t_nat_ar = tenant.get("nationalityAr", "باكستان")
+    t_name_ar = tenant.get("fullNameAr", "جوهر على ارشاد محمد")
     ar_font_nar = "arabic_regular" if has_arabic(t_nat_ar) else "regular"
     ar_dir_nar = "rtl" if has_arabic(t_nat_ar) else None
     lines_nar, f_nar = fit_or_wrap_text(t_nat_ar, max_w=220, max_lines=1, initial_sz=20, min_sz=14, font_name=ar_font_nar)
@@ -525,7 +525,7 @@ def render_page_2(data: dict, template_path: str) -> Image.Image:
         draw_cell_multiline(draw, lines_tm, f_tm, cx=446, cy=469, color=color, anchor="mm")
 
     # Col 3: Nationality En (x=556..792, width=236, center=674, y=486)
-    t_nat_en = tenant.get("nationalityEn", "India")
+    t_nat_en = tenant.get("nationalityEn", "Pakistan")
     lines_nen, f_nen = fit_or_wrap_text(t_nat_en, max_w=215, max_lines=1, initial_sz=19, min_sz=13, font_name="regular")
     draw.text((674, 486), lines_nen[0], fill=color, font=f_nen, anchor="mm")
 
@@ -536,7 +536,7 @@ def render_page_2(data: dict, template_path: str) -> Image.Image:
         draw.text((901, 469), lines_teid[0], fill=color, font=f_teid, anchor="mm")
 
     # Col 5: Tenant Full Name En (x=1011..1346, width=335, center=1178, y=486)
-    t_name_en = tenant.get("fullNameEn", "RANGITH RAMALINGAM")
+    t_name_en = tenant.get("fullNameEn", "Gohar Ali Irshad Muhammad")
     lines_ten, f_ten = fit_or_wrap_text(t_name_en, max_w=315, max_lines=2, initial_sz=19, min_sz=13, font_name="regular")
     if len(lines_ten) == 1:
         draw.text((1178, 486), lines_ten[0], fill=color, font=f_ten, anchor="mm")
@@ -597,13 +597,13 @@ def render_page_2(data: dict, template_path: str) -> Image.Image:
         draw.text((909, 1392), lines_uten[0], fill=color, font=f_uten, anchor="mm")
 
     # Col 6 (x=1009..1178): Unit Reg No
-    unit_reg = u0.get("unitRegNo", "UNT308271")
+    unit_reg = u0.get("unitRegNo", "UNT302977")
     if unit_reg:
         lines_ur, f_ur = fit_or_wrap_text(unit_reg, max_w=165, max_lines=1, initial_sz=20, min_sz=14)
         draw.text((1093, 1375), lines_ur[0], fill=color, font=f_ur, anchor="mm")
 
     # Col 7 (x=1178..1341): Unit No
-    unit_no = u0.get("unitNo", "Flat No. 606")
+    unit_no = u0.get("unitNo", "Flat No. 254")
     if unit_no:
         lines_un, f_un = fit_or_wrap_text(unit_no, max_w=158, max_lines=2, initial_sz=20, min_sz=13, font_name="regular")
         draw_cell_multiline(draw, lines_un, f_un, cx=1260, cy=1375, color=color, anchor="mm")
@@ -613,9 +613,9 @@ def render_page_2(data: dict, template_path: str) -> Image.Image:
     # Col 2 (Emirates ID): x=[440, 972], width=532, center=706
     # Col 3 (Arabic Full Name): x=[972, 1344], width=372, anchor='rm' at x=1330, max_w=345
     occ0 = occupants[0] if occupants else {}
-    occ_name = occ0.get("fullName", tenant.get("fullNameEn", "RANGITH RAMALINGAM"))
-    occ_eid = occ0.get("emiratesId", tenant.get("emiratesId", "784198921595066"))
-    occ_name_ar = occ0.get("fullNameAr", tenant.get("fullNameAr", "رانجيث رامالينغام"))
+    occ_name = occ0.get("fullName", tenant.get("fullNameEn", "Gohar Ali Irshad Muhammad"))
+    occ_eid = occ0.get("emiratesId", tenant.get("emiratesId", "784198883321535"))
+    occ_name_ar = occ0.get("fullNameAr", tenant.get("fullNameAr", "جوهر على ارشاد محمد"))
 
     if occ_name:
         lines_occ_en, f_occ_en = fit_or_wrap_text(occ_name, max_w=345, max_lines=2, initial_sz=19, min_sz=13, font_name="regular")

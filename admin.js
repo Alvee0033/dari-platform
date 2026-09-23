@@ -525,6 +525,10 @@ async function handleConfirmBatchDelete() {
   const idsToDelete = [...selectedDocIds];
 
   // Remove from in-memory array and localStorage immediately
+  idsToDelete.forEach(id => {
+    const d = documents.find(doc => doc.id === id);
+    if (d && d.documentNumber) _generatedContracts.delete(d.documentNumber);
+  });
   documents = documents.filter(doc => !selectedDocIds.has(doc.id));
   selectedDocIds.clear();
   localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
@@ -1316,17 +1320,19 @@ function handleFormSubmit(e) {
     showToast(`Contract ${docNumber} registered successfully`, 'success');
   }
 
-  saveDocuments();
+  _generatedContracts.delete(docNumber);
+  await saveDocuments();
   renderAll();
   closeDocModal();
 
-  // Pre-generate contract in the background right after saving so it's instantly viewable
+  // Pre-generate contract in the background right after saving with full payload
   const _tenantQrB64 = (document.getElementById('tenantQrB64') || {}).value || '';
   const _lessorQrB64 = (document.getElementById('lessorQrB64') || {}).value || '';
   fetch('/api/generate-contract', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      ...docPayload,
       documentNumber: docNumber,
       force: true,
       signatureQR: { tenantQR: _tenantQrB64, lessorQR: _lessorQrB64 }
@@ -1368,6 +1374,7 @@ async function handleConfirmDelete() {
   const idToDelete = deletingDocId;
 
   // Remove from in-memory array and localStorage immediately
+  if (docNumber) _generatedContracts.delete(docNumber);
   documents = documents.filter(d => d.id !== idToDelete);
   selectedDocIds.delete(idToDelete);
   localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
@@ -1505,8 +1512,9 @@ function showContractLoader(show, title = '', status = '') {
 }
 
 // Preloads all 8 pages in memory to ensure complete decoding before revealing
-function preloadContractPages(docNum, totalPages = 8) {
+function preloadContractPages(docNum, totalPages = 8, vTag = null) {
   const promises = [];
+  const tag = vTag || Date.now();
 
   for (let p = 1; p <= totalPages; p++) {
     promises.push(new Promise((resolve) => {
@@ -1529,7 +1537,7 @@ function preloadContractPages(docNum, totalPages = 8) {
       };
 
       timer = setTimeout(finish, 5000); // safety fallback
-      img.src = `/api/contracts/${docNum}/${p}.png`;
+      img.src = `/api/contracts/${docNum}/${p}.png?_v=${tag}`;
     }));
   }
 
@@ -1582,7 +1590,8 @@ async function openContractModal(docId) {
     statusEl.className = `contract-status-pill ${(doc.status || 'Active').toLowerCase()}`;
   }
 
-  const pdfUrl = `/api/contracts/${doc.documentNumber}.pdf`;
+  const vTag = doc.updatedAt ? new Date(doc.updatedAt).getTime() : Date.now();
+  const pdfUrl = `/api/contracts/${doc.documentNumber}.pdf?_v=${vTag}`;
   if (dlBtn) dlBtn.href = pdfUrl;
   if (footerDlBtn) footerDlBtn.href = pdfUrl;
 
@@ -1590,7 +1599,7 @@ async function openContractModal(docId) {
   if (periodEl) periodEl.textContent = (doc.startDate && doc.endDate) ? `${doc.startDate} → ${doc.endDate}` : (doc.startDate || '-');
   if (unitEl) unitEl.textContent = doc.unitOrPlot || '-';
 
-  // FAST PATH: contract already generated — skip loader, render immediately
+  // FAST PATH: contract already generated in this session — skip loader, render immediately
   if (_generatedContracts.has(doc.documentNumber)) {
     renderContinuousContractPages();
     showContractLoader(false);
@@ -1610,11 +1619,15 @@ async function openContractModal(docId) {
   try {
     showContractLoader(true, 'Rendering Contract Pages & Official Stamps...', 'Compiling Page 1 to 8...');
 
-    // 2. Request generation on server and wait for it to complete
+    // 2. Request generation on server and wait for it to complete with full doc data
     const res = await fetch('/api/generate-contract', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ documentNumber: doc.documentNumber })
+      body: JSON.stringify({
+        ...doc,
+        documentNumber: doc.documentNumber,
+        force: true
+      })
     });
 
     if (!res.ok) {
@@ -1624,7 +1637,7 @@ async function openContractModal(docId) {
     showContractLoader(true, 'Verifying Document Viewability...', 'Validating high-res stream...');
 
     // 3. Preload pages in memory to ensure complete decoding
-    await preloadContractPages(doc.documentNumber, 8);
+    await preloadContractPages(doc.documentNumber, 8, vTag);
 
     // 4. Render pages into DOM
     renderContinuousContractPages();
@@ -1655,6 +1668,7 @@ function renderContinuousContractPages() {
 
   const docNum = currentContractDoc.documentNumber;
   const pageCount = 8;
+  const vTag = currentContractDoc.updatedAt ? new Date(currentContractDoc.updatedAt).getTime() : Date.now();
 
   let html = '';
   for (let p = 1; p <= pageCount; p++) {
@@ -1663,7 +1677,7 @@ function renderContinuousContractPages() {
         <span class="page-badge">Page ${p} of ${pageCount}</span>
         <img ${p === 1 ? 'id="contractViewerImage"' : ''} 
              class="contract-page-img" 
-             src="/api/contracts/${docNum}/${p}.png" 
+             src="/api/contracts/${docNum}/${p}.png?_v=${vTag}" 
              alt="Contract Page ${p}" 
              loading="eager"
              onerror="handleContractPageImgError(this, '${docNum}', ${p})"

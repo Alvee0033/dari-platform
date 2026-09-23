@@ -21,6 +21,8 @@ import db
 PORT = 8080
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
+import shutil
+
 _contract_locks = {}
 _locks_mutex = threading.Lock()
 
@@ -31,6 +33,28 @@ def get_contract_lock(contract_num):
             _contract_locks[c_str] = threading.Lock()
         return _contract_locks[c_str]
 
+def invalidate_contract_cache(contract_num=None):
+    """Deletes cached PNGs/PDF for a contract, or all contracts if None."""
+    out_base = os.path.join(DIRECTORY, "doc_gen", "output")
+    if contract_num:
+        c_dir = os.path.join(out_base, str(contract_num))
+        if os.path.exists(c_dir):
+            try:
+                shutil.rmtree(c_dir)
+                print(f"[CACHE] Cleared contract output cache for {contract_num}")
+            except Exception as e:
+                print(f"[CACHE] Error removing {c_dir}: {e}")
+    else:
+        if os.path.exists(out_base):
+            for item in os.listdir(out_base):
+                p = os.path.join(out_base, item)
+                if os.path.isdir(p):
+                    try:
+                        shutil.rmtree(p)
+                    except Exception:
+                        pass
+            print("[CACHE] Cleared all contract output caches")
+
 def generate_contract_for_number(contract_num, custom_data=None, force=False):
     """Loads base template, merges with registry document data or custom_data, and generates contract bundle."""
     c_str = str(contract_num)
@@ -40,8 +64,14 @@ def generate_contract_for_number(contract_num, custom_data=None, force=False):
         output_dir = os.path.join(doc_gen_dir, "output", c_str)
         complete_marker = os.path.join(output_dir, ".complete")
 
-        # If already fully generated and not forced, return cached metadata
-        if not force and not custom_data and os.path.exists(complete_marker):
+        # If forced or custom data passed, wipe old output so fresh pages are generated
+        if force or custom_data:
+            if os.path.exists(output_dir):
+                try:
+                    shutil.rmtree(output_dir)
+                except Exception:
+                    pass
+        elif os.path.exists(complete_marker):
             all_pages_exist = all(os.path.exists(os.path.join(output_dir, f"{i}.png")) for i in range(1, 9))
             pdf_path = os.path.join(output_dir, f"{c_str}.pdf")
             if all_pages_exist and os.path.exists(pdf_path):
@@ -69,13 +99,19 @@ def generate_contract_for_number(contract_num, custom_data=None, force=False):
             docs = db.get_documents_db(docs_file)
             for d in docs:
                 if str(d.get("documentNumber")) == str(contract_num) or str(d.get("id")) == str(contract_num):
-                    matched_doc = d
+                    matched_doc = dict(d)
                     break
         except Exception:
             pass
 
-        # If custom_data passed, merge
+        # If custom_data is provided (from save/generate API), it takes priority
         if custom_data and isinstance(custom_data, dict):
+            if matched_doc is None:
+                matched_doc = dict(custom_data)
+            else:
+                matched_doc.update(custom_data)
+
+            # Also merge nested structures if present
             if "contract" in custom_data:
                 contract_data.setdefault("contract", {}).update(custom_data["contract"])
             if "tenant" in custom_data:
@@ -88,7 +124,6 @@ def generate_contract_for_number(contract_num, custom_data=None, force=False):
                 contract_data["units"] = custom_data["units"]
             if "occupants" in custom_data:
                 contract_data["occupants"] = custom_data["occupants"]
-            # Pass through signature QR overrides (base64 PNGs from admin upload)
             if "signatureQR" in custom_data and isinstance(custom_data["signatureQR"], dict):
                 contract_data["signatureQR"] = custom_data["signatureQR"]
 
@@ -231,12 +266,16 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
         parsed = urllib.parse.urlparse(self.path)
         clean = parsed.path.lower()
-        # Add high-performance edge & browser caching for static assets
-        if clean.startswith('/assets/') or clean.endswith(('.css', '.js', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.woff2', '.ttf', '.woff', '.ico')):
-            if not clean.endswith(('documents.json', 'audit_log.json', 'bottom_nav_data.json')):
-                self.send_header('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400')
-        elif clean.startswith('/api/contracts/') and clean.endswith(('.png', '.pdf')):
-            self.send_header('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400')
+        # NEVER cache API responses, contract files, documents/audit, or app code
+        if (clean.startswith('/api/') or 
+            clean in ['/admin.js', '/admin.css', '/script.js', '/style.css', '/admin', '/admin.html', '/index.html', '/'] or
+            clean.endswith(('documents.json', 'audit_log.json', 'bottom_nav_data.json', '.html'))):
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
+        elif clean.startswith('/assets/'):
+            # Only cache truly static assets like fonts and third-party vendor files
+            self.send_header('Cache-Control', 'public, max-age=86400')
         super().end_headers()
 
     def normalize_path(self):
@@ -349,6 +388,7 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
             if doc_id:
                 try:
                     db.delete_document_db(doc_id, os.path.join(DIRECTORY, 'documents.json'))
+                    invalidate_contract_cache(doc_id)
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
                     self.send_header('Access-Control-Allow-Origin', '*')
@@ -595,6 +635,11 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.loads(post_body.decode('utf-8'))
                 if clean_path in ['/api/documents', '/documents.json']:
                     db.save_documents_db(data, os.path.join(DIRECTORY, 'documents.json'))
+                    if isinstance(data, list):
+                        for doc_item in data:
+                            c_num = doc_item.get('documentNumber')
+                            if c_num:
+                                invalidate_contract_cache(c_num)
                 else:
                     db.save_audit_db(data, os.path.join(DIRECTORY, 'audit_log.json'))
 
@@ -619,8 +664,8 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
             post_body = self.rfile.read(content_len) if content_len > 0 else b'{}'
             try:
                 body = json.loads(post_body.decode('utf-8')) if post_body else {}
-                contract_num = body.get('documentNumber') or body.get('contractNumber') or '202401452705'
-                force = body.get('force', False)
+                contract_num = body.get('documentNumber') or body.get('contractNumber') or '202401451594'
+                force = body.get('force', True)  # Always force fresh generation on explicit API call
                 res = generate_contract_for_number(contract_num, custom_data=body, force=force)
                 c_num = res['contractNumber']
                 p_count = res.get('pageCount', 8)
@@ -669,6 +714,8 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     db.init_db()
+    # Invalidate any stale contract cache on restart
+    invalidate_contract_cache(None)
     port = int(sys.argv[1]) if len(sys.argv) > 1 else PORT
     server_address = ('', port)
     http.server.ThreadingHTTPServer.allow_reuse_address = True
