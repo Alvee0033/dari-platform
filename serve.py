@@ -30,7 +30,7 @@ def get_contract_lock(contract_num):
     with _locks_mutex:
         c_str = str(contract_num)
         if c_str not in _contract_locks:
-            _contract_locks[c_str] = threading.Lock()
+            _contract_locks[c_str] = threading.RLock()
         return _contract_locks[c_str]
 
 def invalidate_contract_cache(contract_num=None):
