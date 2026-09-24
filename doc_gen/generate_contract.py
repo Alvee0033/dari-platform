@@ -144,7 +144,7 @@ def render_qr_code(card: Image.Image, qr_text: str):
     card.paste(qr_resized, (84, 67), qr_resized)
 
 
-def render_common_footer(card: Image.Image, contract_no: str, contract_date: str):
+def render_common_footer(card: Image.Image, contract_no: str, contract_date: str, page_num: int = 1):
     """
     Renders common bottom footer text on all contract pages with proper typography and sizing.
     Uses exact positioning matching official DARI template guidelines without destructive masking.
@@ -169,8 +169,11 @@ def render_common_footer(card: Image.Image, contract_no: str, contract_date: str
         draw.text((199, 1949), str(contract_no).strip(), fill=color_text, font=font_cno, anchor="ms")
 
     # 4. Contract Date - Centered in gap x=1195..1296 between 'Contract Date:' and ': تاريخ العقد'
+    # Page 1 template label baseline sits at y=1937 (date rendered at 1938 for flush alignment);
+    # Pages 2-8 template label baseline sits at y=1936 (date rendered at 1937).
     if contract_date:
-        draw.text((1246, 1937), str(contract_date).strip(), fill=color_text, font=font_date, anchor="ms")
+        date_y = 1938 if page_num == 1 else 1937
+        draw.text((1246, date_y), str(contract_date).strip(), fill=color_text, font=font_date, anchor="ms")
 
 
 def wrap_text_by_words(text, font, max_w):
@@ -468,7 +471,7 @@ def render_page_1(data: dict, template_path: str) -> Image.Image:
     draw_cell_multiline(draw, lines_ce, f_ce, cx=708, cy=1559, color=color, anchor="mm")
 
     # 5. Common Bottom Footer
-    render_common_footer(card, c_no, c_date)
+    render_common_footer(card, c_no, c_date, page_num=1)
     return card
 
 
@@ -629,7 +632,7 @@ def render_page_2(data: dict, template_path: str) -> Image.Image:
             draw_cell_multiline(draw, lines_occ_ar, f_occ_ar, cx=1330, cy=1582, color=color, anchor="rm", direction="rtl", line_spacing=24)
 
     # 5. Common Bottom Footer
-    render_common_footer(card, c_no, c_date)
+    render_common_footer(card, c_no, c_date, page_num=2)
     return card
 
 
@@ -717,7 +720,7 @@ def render_page_3(data: dict, template_path: str) -> Image.Image:
     card.paste(lsr_qr_img, (969, 770), lsr_qr_img)
 
     # 3. Common Bottom Footer
-    render_common_footer(card, c_no, c_date)
+    render_common_footer(card, c_no, c_date, page_num=3)
 
     return card
 
@@ -734,7 +737,7 @@ def render_page_terms(page_num: int, data: dict, template_path: str) -> Image.Im
     render_qr_code(card, c_no)
 
     # 2. Common Bottom Footer
-    render_common_footer(card, c_no, c_date)
+    render_common_footer(card, c_no, c_date, page_num=page_num)
 
     return card
 
