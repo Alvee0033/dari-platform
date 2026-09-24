@@ -146,36 +146,31 @@ def render_qr_code(card: Image.Image, qr_text: str):
 
 def render_common_footer(card: Image.Image, contract_no: str, contract_date: str):
     """
-    Renders common bottom footer text on all contract pages.
-    Erases background text first so template URLs/numbers never show or overlap.
+    Renders common bottom footer text on all contract pages with proper typography and sizing.
+    Uses exact positioning matching official DARI template guidelines without destructive masking.
     """
     draw = ImageDraw.Draw(card)
-    font_cno = get_font("regular", 15)
-    font_date = get_font("regular", 14)
-    font_url = get_font("url", 15.0)
+    font_cno = get_font("regular", 14.5)
+    font_date = get_font("regular", 14.0)
+    font_url = get_font("regular", 14.5)
     color_text = (45, 45, 45)  # Exact tone as official demo (NOT pure black)
     color_url = (39, 91, 119)  # Official DARI brand link color
 
-    # White out old template footer areas to prevent ghost text/wrong domains
-    draw.rectangle([(40, 1905), (440, 1928)], fill=(255, 255, 255, 255))
-    draw.rectangle([(980, 1888), (1380, 1910)], fill=(255, 255, 255, 255))
-    draw.rectangle([(130, 1935), (320, 1965)], fill=(255, 255, 255, 255))
-    draw.rectangle([(1180, 1925), (1340, 1958)], fill=(255, 255, 255, 255))
-
     url_text = "https://dari-aec.com/en/app/verify-tenant-contract"
-    # 1. Verification URL - Left (under English notice, exactly covering underline x=48..421 at y=1920)
+
+    # 1. Verification URL - Left (under English notice, cleanly on top of left underline at y=1920)
     draw.text((47, 1920), url_text, fill=color_url, font=font_url, anchor="ls")
 
-    # 2. Verification URL - Right (under Arabic notice, exactly covering underline x=996..1369 at y=1903)
-    draw.text((995, 1903), url_text, fill=color_url, font=font_url, anchor="ls")
+    # 2. Verification URL - Right (under Arabic notice, cleanly on top of right underline at y=1902)
+    draw.text((996, 1902), url_text, fill=color_url, font=font_url, anchor="ls")
 
-    # 3. Contract ID (Number)
+    # 3. Contract ID (Number) - Centered in gap x=135..262 between 'Contract No.:' and 'رقم العقد :'
     if contract_no:
-        draw.text((200, 1948), str(contract_no).strip(), fill=color_text, font=font_cno, anchor="ms")
+        draw.text((199, 1954), str(contract_no).strip(), fill=color_text, font=font_cno, anchor="ms")
 
-    # 4. Contract Date
+    # 4. Contract Date - Centered in gap x=1195..1296 between 'Contract Date:' and ': تاريخ العقد'
     if contract_date:
-        draw.text((1245, 1937), str(contract_date).strip(), fill=color_text, font=font_date, anchor="ms")
+        draw.text((1246, 1954), str(contract_date).strip(), fill=color_text, font=font_date, anchor="ms")
 
 
 def wrap_text_by_words(text, font, max_w):
