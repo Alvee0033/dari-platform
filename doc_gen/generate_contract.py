@@ -166,11 +166,11 @@ def render_common_footer(card: Image.Image, contract_no: str, contract_date: str
 
     # 3. Contract ID (Number) - Centered in gap x=135..262 between 'Contract No.:' and 'رقم العقد :'
     if contract_no:
-        draw.text((199, 1954), str(contract_no).strip(), fill=color_text, font=font_cno, anchor="ms")
+        draw.text((199, 1949), str(contract_no).strip(), fill=color_text, font=font_cno, anchor="ms")
 
     # 4. Contract Date - Centered in gap x=1195..1296 between 'Contract Date:' and ': تاريخ العقد'
     if contract_date:
-        draw.text((1246, 1954), str(contract_date).strip(), fill=color_text, font=font_date, anchor="ms")
+        draw.text((1246, 1937), str(contract_date).strip(), fill=color_text, font=font_date, anchor="ms")
 
 
 def wrap_text_by_words(text, font, max_w):
