@@ -169,10 +169,10 @@ def render_common_footer(card: Image.Image, contract_no: str, contract_date: str
         draw.text((199, 1949), str(contract_no).strip(), fill=color_text, font=font_cno, anchor="ms")
 
     # 4. Contract Date - Centered in gap x=1195..1296 between 'Contract Date:' and ': تاريخ العقد'
-    # Page 1 template label baseline sits at y=1937 (date rendered at 1938 for flush alignment);
+    # Page 1 template label baseline sits at y=1937 (date rendered at 1940 for flush alignment with Arabic and English);
     # Pages 2-8 template label baseline sits at y=1936 (date rendered at 1937).
     if contract_date:
-        date_y = 1938 if page_num == 1 else 1937
+        date_y = 1940 if page_num == 1 else 1937
         draw.text((1246, date_y), str(contract_date).strip(), fill=color_text, font=font_date, anchor="ms")
 
 
