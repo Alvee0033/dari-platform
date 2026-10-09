@@ -54,8 +54,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Load documents, audit logs, and settings
 async function loadData() {
-  // Always fetch from server — never pre-load localStorage.
-  // localStorage was causing deleted docs to flash back on every reload.
   try {
     const res = await fetch(`/api/documents?_t=${Date.now()}`, {
       cache: 'no-store',
@@ -63,24 +61,46 @@ async function loadData() {
     });
     if (res.ok) {
       const serverDocs = await res.json();
-      if (Array.isArray(serverDocs)) {
+      if (Array.isArray(serverDocs) && serverDocs.length > 0) {
         documents = serverDocs;
         localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
-
-        // Background: check which contracts are already generated server-side.
-        documents.forEach(doc => {
-          if (doc.documentNumber && !_generatedContracts.has(doc.documentNumber)) {
-            fetch(`/api/contracts/${doc.documentNumber}/status`, { cache: 'no-store' })
-              .then(r => r.ok ? r.json() : null)
-              .then(data => { if (data && data.ready) _generatedContracts.add(doc.documentNumber); })
-              .catch(() => {});
+      } else if (Array.isArray(serverDocs) && serverDocs.length === 0) {
+        // If server is empty but client has cached documents from active session, restore to server
+        const cachedDocs = localStorage.getItem(STORAGE_KEY_DOCS);
+        if (cachedDocs) {
+          try {
+            const parsed = JSON.parse(cachedDocs);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              documents = parsed;
+              await fetch('/api/documents', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(documents)
+              }).catch(() => {});
+            } else {
+              documents = [];
+            }
+          } catch (ex) {
+            documents = [];
           }
-        });
+        } else {
+          documents = [];
+        }
       }
+
+      // Background: check which contracts are already generated server-side.
+      documents.forEach(doc => {
+        if (doc.documentNumber && !_generatedContracts.has(doc.documentNumber)) {
+          fetch(`/api/contracts/${doc.documentNumber}/status`, { cache: 'no-store' })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => { if (data && data.ready) _generatedContracts.add(doc.documentNumber); })
+            .catch(() => {});
+        }
+      });
     }
   } catch (e) {
     console.warn('Could not fetch /api/documents', e);
-    // Only use localStorage as a last resort if server is completely unreachable
+    // Use localStorage as fallback if server is unreachable
     const cachedDocs = localStorage.getItem(STORAGE_KEY_DOCS);
     if (cachedDocs) {
       try { documents = JSON.parse(cachedDocs); } catch (ex) {}
@@ -173,6 +193,9 @@ async function saveDocuments() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(documents)
     });
+    if (!res.ok) {
+      console.warn('Server sync returned non-200:', res.status);
+    }
     return res.ok;
   } catch (err) {
     console.error('Failed to sync documents with server:', err);

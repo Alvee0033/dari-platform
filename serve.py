@@ -634,8 +634,23 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 data = json.loads(post_body.decode('utf-8'))
                 if clean_path in ['/api/documents', '/documents.json']:
-                    db.save_documents_db(data, os.path.join(DIRECTORY, 'documents.json'))
-                    if isinstance(data, list):
+                    if isinstance(data, dict):
+                        # Single document upsert
+                        existing = db.get_documents_db(os.path.join(DIRECTORY, 'documents.json'))
+                        doc_num = str(data.get('documentNumber') or data.get('id') or '')
+                        found = False
+                        for idx, ed in enumerate(existing):
+                            if str(ed.get('documentNumber')) == doc_num or str(ed.get('id')) == str(data.get('id')):
+                                existing[idx] = {**ed, **data}
+                                found = True
+                                break
+                        if not found:
+                            existing.insert(0, data)
+                        db.save_documents_db(existing, os.path.join(DIRECTORY, 'documents.json'))
+                        if doc_num:
+                            invalidate_contract_cache(doc_num)
+                    elif isinstance(data, list):
+                        db.save_documents_db(data, os.path.join(DIRECTORY, 'documents.json'))
                         for doc_item in data:
                             c_num = doc_item.get('documentNumber')
                             if c_num:
@@ -713,9 +728,8 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(content)
 
 if __name__ == '__main__':
+    os.makedirs(os.path.join(DIRECTORY, "doc_gen", "output"), exist_ok=True)
     db.init_db()
-    # Invalidate any stale contract cache on restart
-    invalidate_contract_cache(None)
     port = int(sys.argv[1]) if len(sys.argv) > 1 else PORT
     server_address = ('', port)
     http.server.ThreadingHTTPServer.allow_reuse_address = True

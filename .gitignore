@@ -4,6 +4,7 @@ screenshots/
 __pycache__/
 *.pyc
 *.pyo
+*.db
 
 # OS metadata
 .DS_Store
