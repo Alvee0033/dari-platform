@@ -69,6 +69,10 @@ def run_tests():
 
         print("  ✓ All 8 contract page images loaded and rendered perfectly!")
 
+        # Close modal
+        driver.execute_script("closeContractModal();")
+        time.sleep(1)
+
         # 4. Test Logout
         print("[TEST 4] Testing logout...")
         logout_btn = driver.find_element(By.ID, "btnLogoutNav")

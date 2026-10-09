@@ -25,10 +25,10 @@ def run_e2e_tests():
         print("  ✓ Public page loaded successfully.")
 
         # Test 2: Perform Document Search
-        print("[TEST 2] Performing document verification search for '202401452705'...")
+        print("[TEST 2] Performing document verification search for '202401369526'...")
         input_ref = driver.find_element(By.ID, "tenancyNumberInput")
         input_ref.clear()
-        input_ref.send_keys("202401452705")
+        input_ref.send_keys("202401369526")
         
         btn_verify = driver.find_element(By.CSS_SELECTOR, "#viewTenancy button[type='submit']")
         btn_verify.click()
@@ -36,18 +36,15 @@ def run_e2e_tests():
 
         result_section = driver.find_element(By.ID, "verifyResultView")
         assert result_section.is_displayed()
-        assert "202401452705" in driver.page_source or "active" in driver.page_source.lower()
+        assert "202401369526" in driver.page_source or "active" in driver.page_source.lower()
         print("  ✓ Document verified successfully via API/Postgres.")
 
-        # Test 3: Admin Login Modal & Verification (No Demo Card)
-        print("[TEST 3] Admin console login modal check...")
+        # Test 3: Admin Redirect & Login Page
+        print("[TEST 3] Admin console unauthenticated redirect to /login...")
         driver.get(f"{base_url}/admin")
         time.sleep(2)
-
-        # Check demo card is completely gone
-        demo_cards = driver.find_elements(By.ID, "btnQuickFillDemo")
-        assert len(demo_cards) == 0 or not demo_cards[0].is_displayed(), "ERROR: Demo card still visible!"
-        print("  ✓ Demo credentials card is completely absent from login page.")
+        assert "/login" in driver.current_url
+        print("  ✓ Unauthenticated access safely redirected to /login.")
 
         # Test 4: Perform Officer Authentication
         print("[TEST 4] Authenticating officer credentials...")
@@ -55,13 +52,14 @@ def run_e2e_tests():
         pass_inp = driver.find_element(By.ID, "loginPassword")
         btn_login = driver.find_element(By.ID, "btnLoginSubmit")
 
+        email_inp.clear()
         email_inp.send_keys("officer@adrec.gov.ae")
+        pass_inp.clear()
         pass_inp.send_keys("admin123")
         btn_login.click()
-        time.sleep(2)
+        time.sleep(3)
 
-        overlay = driver.find_element(By.ID, "adminLoginOverlay")
-        assert "active" not in overlay.get_attribute("class")
+        assert "/admin" in driver.current_url
         print("  ✓ Officer logged in successfully and accessed Operations Center.")
 
         # Test 5: Verify Document Registry Table
