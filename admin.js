@@ -61,31 +61,45 @@ async function loadData() {
     });
     if (res.ok) {
       const serverDocs = await res.json();
-      if (Array.isArray(serverDocs) && serverDocs.length > 0) {
-        documents = serverDocs;
-        localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
-      } else if (Array.isArray(serverDocs) && serverDocs.length === 0) {
-        // If server is empty but client has cached documents from active session, restore to server
-        const cachedDocs = localStorage.getItem(STORAGE_KEY_DOCS);
-        if (cachedDocs) {
-          try {
-            const parsed = JSON.parse(cachedDocs);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              documents = parsed;
-              await fetch('/api/documents', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(documents)
-              }).catch(() => {});
-            } else {
-              documents = [];
-            }
-          } catch (ex) {
-            documents = [];
-          }
+      if (Array.isArray(serverDocs)) {
+        // Read client-side cached documents
+        let cachedDocs = [];
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_DOCS);
+          if (raw) cachedDocs = JSON.parse(raw) || [];
+        } catch (ex) {}
+
+        // Identify any documents saved in localStorage that may be missing on server
+        const serverNums = new Set(serverDocs.map(d => String(d.documentNumber || d.id || '')));
+        const missingOnServer = cachedDocs.filter(cd => {
+          const ref = String(cd.documentNumber || cd.id || '');
+          return ref && !serverNums.has(ref);
+        });
+
+        if (missingOnServer.length > 0) {
+          console.log(`[Sync] Restoring ${missingOnServer.length} locally created document(s) to server...`);
+          // Preserve local documents and prepend them
+          documents = [...missingOnServer, ...serverDocs];
+          // Immediately sync merged list to server
+          fetch('/api/documents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(documents)
+          }).catch(err => console.error('Failed to sync merged docs to server:', err));
+        } else if (serverDocs.length > 0) {
+          documents = serverDocs;
+        } else if (cachedDocs.length > 0) {
+          documents = cachedDocs;
+          fetch('/api/documents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(documents)
+          }).catch(() => {});
         } else {
           documents = [];
         }
+
+        localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
       }
 
       // Background: check which contracts are already generated server-side.
@@ -1333,27 +1347,37 @@ async function handleFormSubmit(e) {
       showToast(`Contract ${docNumber} updated successfully`, 'success');
     }
   } else {
-    let maxNum = 1000;
-    documents.forEach(d => {
-      const match = String(d.id || '').match(/DOC-(\d+)/i);
-      if (match) {
-        const n = parseInt(match[1], 10);
-        if (!isNaN(n) && n > maxNum) maxNum = n;
+    const existingIdx = documents.findIndex(d => String(d.documentNumber || '').trim() === String(docNumber).trim());
+    if (existingIdx !== -1) {
+      documents[existingIdx] = {
+        ...documents[existingIdx],
+        ...docPayload,
+        updatedAt: now
+      };
+      showToast(`Contract ${docNumber} updated in registry`, 'success');
+    } else {
+      let maxNum = 1000;
+      documents.forEach(d => {
+        const match = String(d.id || '').match(/DOC-(\d+)/i);
+        if (match) {
+          const n = parseInt(match[1], 10);
+          if (!isNaN(n) && n > maxNum) maxNum = n;
+        }
+      });
+      let nextId = `DOC-${maxNum + 1}`;
+      while (documents.some(d => d.id === nextId)) {
+        maxNum++;
+        nextId = `DOC-${maxNum + 1}`;
       }
-    });
-    let nextId = `DOC-${maxNum + 1}`;
-    while (documents.some(d => d.id === nextId)) {
-      maxNum++;
-      nextId = `DOC-${maxNum + 1}`;
+      const newDoc = {
+        id: nextId,
+        ...docPayload,
+        verificationCount: 0,
+        createdAt: now
+      };
+      documents.unshift(newDoc);
+      showToast(`Contract ${docNumber} registered successfully`, 'success');
     }
-    const newDoc = {
-      id: nextId,
-      ...docPayload,
-      verificationCount: 0,
-      createdAt: now
-    };
-    documents.unshift(newDoc);
-    showToast(`Contract ${docNumber} registered successfully`, 'success');
   }
 
   _generatedContracts.delete(docNumber);
