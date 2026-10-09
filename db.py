@@ -608,6 +608,7 @@ def get_documents_db(json_filepath=None):
                     except Exception: pass
                 results.append(item)
             if results:
+                results.sort(key=lambda d: str(d.get('updatedAt') or d.get('createdAt') or '') if isinstance(d, dict) else '', reverse=True)
                 return results
         except Exception as e:
             logger.error(f"[DB] PostgreSQL get_documents error: {e}")
@@ -629,6 +630,7 @@ def get_documents_db(json_filepath=None):
                     except Exception: pass
                 results.append(item)
             if results:
+                results.sort(key=lambda d: str(d.get('updatedAt') or d.get('createdAt') or '') if isinstance(d, dict) else '', reverse=True)
                 return results
         except Exception as e:
             logger.error(f"[DB] SQLite get_documents error: {e}")
@@ -639,6 +641,7 @@ def get_documents_db(json_filepath=None):
             with open(json_filepath, 'r', encoding='utf-8') as f:
                 content = json.load(f)
                 if isinstance(content, list) and len(content) > 0:
+                    content.sort(key=lambda d: str(d.get('updatedAt') or d.get('createdAt') or '') if isinstance(d, dict) else '', reverse=True)
                     return content
         except Exception:
             pass

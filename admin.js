@@ -52,6 +52,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderAll();
 });
 
+// Always sort latest documents first based on updatedAt / createdAt / id
+function sortDocumentsLatestFirst(docs) {
+  if (!Array.isArray(docs)) return [];
+  return [...docs].sort((a, b) => {
+    const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime() || 0;
+    const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime() || 0;
+    if (timeB !== timeA) return timeB - timeA;
+    const numA = parseInt(String(a.id || '').replace(/\D/g, ''), 10) || 0;
+    const numB = parseInt(String(b.id || '').replace(/\D/g, ''), 10) || 0;
+    return numB - numA;
+  });
+}
+
 // Load documents, audit logs, and settings
 async function loadData() {
   try {
@@ -99,6 +112,8 @@ async function loadData() {
           documents = [];
         }
 
+        // ALWAYS SORT LATEST ONE ON TOP
+        documents = sortDocumentsLatestFirst(documents);
         localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(documents));
       }
 
@@ -866,7 +881,8 @@ function renderKPIs() {
 }
 
 function getFilteredDocuments() {
-  return documents.filter(doc => {
+  const sorted = sortDocumentsLatestFirst(documents);
+  return sorted.filter(doc => {
     // Type filter
     if (currentFilterType !== 'all' && doc.type !== currentFilterType) {
       return false;
@@ -1380,6 +1396,7 @@ async function handleFormSubmit(e) {
     }
   }
 
+  documents = sortDocumentsLatestFirst(documents);
   _generatedContracts.delete(docNumber);
   await saveDocuments();
   renderAll();
