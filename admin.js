@@ -1333,8 +1333,21 @@ async function handleFormSubmit(e) {
       showToast(`Contract ${docNumber} updated successfully`, 'success');
     }
   } else {
+    let maxNum = 1000;
+    documents.forEach(d => {
+      const match = String(d.id || '').match(/DOC-(\d+)/i);
+      if (match) {
+        const n = parseInt(match[1], 10);
+        if (!isNaN(n) && n > maxNum) maxNum = n;
+      }
+    });
+    let nextId = `DOC-${maxNum + 1}`;
+    while (documents.some(d => d.id === nextId)) {
+      maxNum++;
+      nextId = `DOC-${maxNum + 1}`;
+    }
     const newDoc = {
-      id: 'DOC-' + (1000 + documents.length + 1),
+      id: nextId,
       ...docPayload,
       verificationCount: 0,
       createdAt: now

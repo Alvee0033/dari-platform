@@ -252,6 +252,7 @@ def init_db():
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
+            cur.execute("ALTER TABLE documents DROP CONSTRAINT IF EXISTS documents_document_number_key;")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_doc_num ON documents(document_number);")
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS audit_logs (
@@ -708,12 +709,17 @@ def save_documents_db(docs, json_filepath=None):
                                 updated_at = CURRENT_TIMESTAMP;
                         """, (doc_id, doc_num, json.dumps(doc)))
                 if kept_ids:
-                    cur.execute("DELETE FROM documents WHERE id NOT IN %s;", (tuple(kept_ids),))
+                    cur.execute("DELETE FROM documents WHERE NOT (id = ANY(%s));", (list(kept_ids),))
             pg_conn.commit()
             cur.close()
             pg_conn.close()
         except Exception as e:
-            logger.error(f"[DB] PostgreSQL save_documents error: {e}")
+            logger.error(f"[DB] PostgreSQL save_documents error: {e}", exc_info=True)
+            if pg_conn:
+                try: pg_conn.rollback()
+                except Exception: pass
+                try: pg_conn.close()
+                except Exception: pass
 
 def delete_document_db(doc_id: str, json_filepath=None):
     """Delete a single document by ID from PostgreSQL, SQLite, and JSON fallback."""
