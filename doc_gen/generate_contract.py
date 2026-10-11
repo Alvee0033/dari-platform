@@ -126,7 +126,7 @@ def render_qr_code(card: Image.Image, qr_text: str):
     if text.startswith("http://") or text.startswith("https://"):
         qr_url = text
     else:
-        qr_url = f"https://abu-dabhi.com/en/app/verify-tenant-contract?search={text}"
+        qr_url = f"https://dari-ace.com/en/app/verify-tenant-contract?search={text}"
 
     # Clean the 108x108 region first to cover any existing artifact
     draw = ImageDraw.Draw(card)
@@ -156,7 +156,7 @@ def render_common_footer(card: Image.Image, contract_no: str, contract_date: str
     color_text = (45, 45, 45)  # Exact tone as official demo (NOT pure black)
     color_url = (39, 91, 119)  # Official DARI brand link color
 
-    url_text = "https://abu-dabhi.com/en/app/verify-tenant-contract"
+    url_text = "https://dari-ace.com/en/app/verify-tenant-contract"
 
     # 1. Verification URL - Left (under English notice, cleanly on top of left underline at y=1920)
     draw.text((47, 1920), url_text, fill=color_url, font=font_url, anchor="ls")
@@ -688,7 +688,7 @@ def render_page_3(data: dict, template_path: str) -> Image.Image:
 
     # 2. Signature Approval QR Codes
     active_cno = str(c_no).strip() if c_no else "202401451594"
-    tenant_sig_url = f"https://abu-dabhi.com/en/app/verify-tenant-contract?search={active_cno}"
+    tenant_sig_url = f"https://dari-ace.com/en/app/verify-tenant-contract?search={active_cno}"
     default_lessor_content = "contractNo#202401452705 issDte#5/2/2024 11:40:14 AM"
 
     # White out signature QR target zones first to guarantee clean placement without background bleed
