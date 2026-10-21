@@ -126,7 +126,7 @@ def render_qr_code(card: Image.Image, qr_text: str):
     if text.startswith("http://") or text.startswith("https://"):
         qr_url = text
     else:
-        qr_url = f"https://dari-ace.com/en/app/verify-tenant-contract?search={text}"
+        qr_url = f"https://www.dlimss.com/dari/{text}"
 
     # Clean the 108x108 region first to cover any existing artifact
     draw = ImageDraw.Draw(card)
