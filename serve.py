@@ -318,42 +318,54 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.path += '?' + parsed.query
             return None
 
-        for filename in ['style.css', 'script.js', 'admin.css', 'admin.js', 'login.html', 'bottom_nav_data.json', 'favicon.ico']:
+        for filename in ['style.css', 'script.js', 'admin.css', 'admin.js', 'login.html', 'shop.html', 'bottom_nav_data.json', 'favicon.ico']:
             if parsed.path.endswith('/' + filename):
                 self.path = '/' + filename
                 if parsed.query:
                     self.path += '?' + parsed.query
                 return None
 
-        # 5. SPA Document Verification public routes
-        spa_routes = {
-            '',
-            '/',
-            '/index.html',
-            '/en',
-            '/en/',
-            '/ar',
-            '/ar/',
+        # 5. Check if query parameters indicate document verification
+        has_verify_query = any(k in parsed.query for k in [
+            'app/verify-document',
+            'app/verify-tenant-contract',
+            'contractNumber',
+            'contractNo',
+            'documentNumber',
+            'permitNumber',
+            'search',
+            'c_no'
+        ])
+
+        # 6. Specific Document Verification Routes -> index.html
+        verify_routes = {
             '/app',
-            '/app/',
-            '/en/app',
-            '/en/app/',
             '/app/verify-document',
-            '/app/verify-document/',
+            '/en/app',
             '/en/app/verify-document',
-            '/en/app/verify-document/',
+            '/ar/app',
             '/ar/app/verify-document',
-            '/ar/app/verify-document/',
             '/app/verify-tenant-contract',
-            '/app/verify-tenant-contract/',
             '/en/app/verify-tenant-contract',
-            '/en/app/verify-tenant-contract/',
             '/ar/app/verify-tenant-contract',
-            '/ar/app/verify-tenant-contract/',
+            '/verify',
+            '/en/verify',
+            '/ar/verify'
         }
 
-        if clean_path in spa_routes or clean_path.startswith('/en/app') or clean_path.startswith('/ar/app') or clean_path.startswith('/app'):
+        if (clean_path in verify_routes or 
+            clean_path.startswith('/en/app') or 
+            clean_path.startswith('/ar/app') or 
+            clean_path.startswith('/app/') or 
+            has_verify_query):
             self.path = '/index.html'
+            if parsed.query:
+                self.path += '?' + parsed.query
+            return None
+
+        # 7. Root domain or explicit shop route -> shop.html (Super Shop Landing Page)
+        if clean_path in ['', '/', '/shop', '/shop.html', '/index.html', '/en', '/ar']:
+            self.path = '/shop.html'
             if parsed.query:
                 self.path += '?' + parsed.query
             return None
