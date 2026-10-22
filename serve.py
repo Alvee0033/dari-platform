@@ -424,10 +424,11 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        api_target = self.normalize_path()
-        if api_target == 'REDIRECTED':
-            return
-        if api_target == '/api/auth/auto-login' or (clean_path.startswith('/api/auth/auto-login')):
+        parsed = urllib.parse.urlparse(self.path)
+        clean_path = parsed.path.rstrip('/')
+        query_params = urllib.parse.parse_qs(parsed.query)
+
+        if clean_path == '/api/auth/auto-login':
             key = query_params.get('key', [None])[0] or query_params.get('token', [None])[0]
             if key in ['admin123', 'magic', 'auto', 'adrec']:
                 session_token = db.create_session('USR-ADMIN-001')
@@ -436,6 +437,10 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Set-Cookie', f'dari_session={session_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800')
                 self.end_headers()
                 return
+
+        api_target = self.normalize_path()
+        if api_target == 'REDIRECTED':
+            return
 
         if api_target == '/api/auth/me':
             token = self.get_session_token()
