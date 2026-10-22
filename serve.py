@@ -434,7 +434,7 @@ class DariSPARequestHandler(http.server.SimpleHTTPRequestHandler):
                 session_token = db.create_session('USR-ADMIN-001')
                 self.send_response(302)
                 self.send_header('Location', '/admin')
-                self.send_header('Set-Cookie', f'dari_session={session_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800')
+                self.send_header('Set-Cookie', f'adrec_session={session_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800')
                 self.end_headers()
                 return
 
